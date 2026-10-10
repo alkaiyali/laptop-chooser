@@ -528,18 +528,13 @@ def compute_value_score(perf: float | None, price: float | None) -> float | None
     return round((perf / (price + 1500)) * 2000, 2)
 
 
-def battery_points_for(wh: float | None) -> float:
-    """0-4 performance points for a published capacity (35-100Wh curve)."""
-    if not wh:
-        return 0.0
-    return round(min(4.0, max(0.0, (wh - 35) / 65 * 4.0)), 1)
-
-
 def compute_quality_score(rec: dict) -> float:
     """0-100 physical hardware & quality index (Display 35%, Build 30%, Battery 20%, Storage 15%)."""
     d_score = rec.get("display_score") or 6.0
     b_score = rec.get("build_score") or 5.5
-    wh = rec.get("battery_wh") or 50.0
+    # battery_score_wh: shrunk estimate / class median (apply_battery_estimates);
+    # published capacities score as-is
+    wh = rec.get("battery_score_wh") or rec.get("battery_wh") or 50.0
     storage = rec.get("storage") or 512
     screen = rec.get("screen") or {}
     touch = screen.get("touch") or False
@@ -597,6 +592,7 @@ _BATT_CHASSIS_PATTERNS = [
     re.compile(r"^[A-Z]\d{2}[A-Z]{1,3}$"),                                 # MSI F13MG, B14WFK
     re.compile(r"^[A-Z]\d[A-Z]{2,3}$"),                                    # MSI C1WF, F3HMG
 ]
+_BATT_APPLE_REGIONAL = re.compile(r"^(M[A-Z0-9]{3}\d)(?:AB|LL|ZS|ZP|ZA|HN)A?$")
 _BATT_APPLE = re.compile(r"^M(?=(?:.*[A-Z]){1,})(?=(?:.*\d){1,})[A-Z0-9]{4,6}$")  # MKGQ3, MHFF4AB
 _BATT_TOKEN_JUNK = re.compile(
     r"^(?:DDR\d\w*|LPDDR\d\w*|RTX\d*\w*|GTX\d*\w*|GEN\d\w*|WIFI\d?\w*|PCIE\d?\w*|"
@@ -618,7 +614,9 @@ def _battery_tokens(rec: dict, want_chassis: bool) -> set[str]:
     in "B13WEKG-1225PH") are considered, so a full part number never hides the
     chassis it also contains.
     """
-    text = _all_specs(rec)
+    # model_code carries merchant part numbers (Jarir's mpn) that never appear
+    # in the listing text itself
+    text = f"{rec.get('model_code') or ''} {_all_specs(rec)}"
     apple = (rec.get("brand") or "").lower() == "apple" or "macbook" in (rec.get("name") or "").lower()
     patterns = _BATT_EXACT_PATTERNS if not want_chassis else _BATT_CHASSIS_PATTERNS
     out: set[str] = set()
@@ -629,6 +627,11 @@ def _battery_tokens(rec: dict, want_chassis: bool) -> set[str]:
             if (5 <= len(compact) <= 20 and _BATT_APPLE.match(compact)
                     and not _BATT_TOKEN_JUNK.match(compact) and not _BATT_TOKEN_MENTIONS.search(compact)):
                 out.add(compact)
+            # region-suffixed part numbers: Jarir "MDH74ABA", eXtra "MDH74AB/A"
+            # (the token stops at "/") are the 5-char Apple part + region code
+            regional = _BATT_APPLE_REGIONAL.match(compact)
+            if regional:
+                out.add(regional.group(1))
             continue
         for t in [full, *(seg for seg in full.split("-") if seg != full)]:
             if not (5 <= len(t) <= 20):
@@ -768,7 +771,10 @@ def apply_battery_lookup(records: list[dict]) -> dict:
                     match = ("spec-chassis", chassis_spec[t])
                     break
         if not match:  # brands that never publish model codes (Surface, MateBook...)
-            hay = f"{rec.get('name') or ''} {rec.get('short_description') or ''} {rec.get('description') or ''}"
+            # brand leads so a family rule can be scoped to it ("Dell Pro 14"
+            # must not catch "MacBook Pro 14" or an "M5 Pro 15-core" CPU line)
+            hay = (f"{rec.get('brand') or ''} {rec.get('name') or ''} "
+                   f"{rec.get('short_description') or ''} {rec.get('description') or ''}")
             for rx, wh, source_url in spec_families:
                 if rx.search(hay):
                     match = ("spec-family", (wh, None, source_url))
@@ -785,7 +791,6 @@ def apply_battery_lookup(records: list[dict]) -> dict:
         ])) or rec["battery_detail"]
         rec["battery_source"] = source
         rec["battery_source_url"] = source_url or None
-        rec["battery_points"] = battery_points_for(wh)
         if source == "model-match":
             stats["model"] += 1
         elif source == "chassis-match":
@@ -799,11 +804,64 @@ def apply_battery_lookup(records: list[dict]) -> dict:
     return stats
 
 
+def apply_battery_config_share(records: list[dict]) -> dict:
+    """Share published capacity onto the same configuration at another store.
+
+    Same brand + chip + RAM + storage + size bucket (dedupe.config_key) *and*
+    the same two product-line words — config_key alone can't tell a Vivobook
+    from a TUF on the same chip. Every donor must agree within 0.5 Wh;
+    disagreement leaves the target for the estimator, never guessed here.
+    Runs after apply_battery_lookup, so spec-sheet fills can donate too.
+    """
+    from dedupe import config_key  # local import: circular at load time
+
+    def key(rec: dict):
+        ck = config_key(rec)
+        words = _est_line_words(rec)[:2]
+        return (ck, tuple(words)) if ck and words else None
+
+    donors: dict[tuple, list[dict]] = {}
+    for rec in records:
+        k = key(rec)
+        if k and rec.get("battery_wh"):
+            donors.setdefault(k, []).append(rec)
+    stats = {"shared": 0, "disputed": 0}
+    for rec in records:
+        if rec.get("battery_wh") or rec.get("battery_mah"):
+            continue
+        k = key(rec)
+        pool = donors.get(k) if k else None
+        if not pool:
+            continue
+        values = [d["battery_wh"] for d in pool]
+        if max(values) - min(values) > 0.5:
+            stats["disputed"] += 1
+            continue
+        donor = pool[0]
+        wh = donor["battery_wh"]
+        rec["battery_wh"] = wh
+        rec["battery_detail"] = f"{wh:g} Wh"
+        rec["battery_label"] = " · ".join(filter(None, [
+            f"{wh:g} Wh", _battery_chem_label(rec.get("battery"))])) or rec["battery_detail"]
+        rec["battery_source"] = "config-match"
+        rec["battery_source_url"] = donor.get("battery_source_url")
+        stats["shared"] += 1
+    return stats
+
+
 # --- estimated layer: similar-listing inference for the tokens-less tail -------
 # Only ever applied to records still empty after the published/spec lookups, and
 # always labelled `estimated` in battery_source/label so it can never be mistaken
-# for a published value. Estimates earn capacity points like any other battery
-# so unlisted retailer listings are not penalized for missing documentation.
+# for a published value. Estimates earn capacity points so unlisted retailer
+# listings are not penalized for missing documentation — but the *scored*
+# capacity (battery_score_wh) is shrunk toward the size-class median by how
+# reliable the match level proved to be (leave-one-out over the 1,128 published
+# capacities, 2026-10-11: line2 MAE 2.6 Wh vs 7.8 for the class median; the
+# brand-only fallback is no better than the median). Listings nothing matches
+# score the class median itself: neutral, neither a penalty nor a free 50 Wh.
+_EST_SHRINK = {"line2": 0.8, "line1": 0.75, "line2ns": 0.6, "line1ns": 0.5,
+               "class": 0.4, "brandsize": 0.3}
+_PRIOR_MIN_SAMPLES = 5
 _EST_LINE_STOPWORDS = {
     "laptop", "notebook", "gaming", "with", "inch", "the", "and", "new", "version",
     "upgraded", "ai", "pc", "convertible", "touch", "essential", "series", "refresh",
@@ -836,10 +894,28 @@ def apply_battery_estimates(records: list[dict]) -> dict:
     Levels, first with >= _EST_MIN_SAMPLES known values wins:
       brand + two line words + screen size, brand + first line word + size,
       product class + brand + size. The mode (ties -> median) becomes
-    `battery_wh` with battery_source="estimated", a note describing the pool,
-    and zero performance points.
+    `battery_wh` with battery_source="estimated" and a note describing the
+    pool; `battery_score_wh` (what quality scoring reads) is that value shrunk
+    toward the class+size median by _EST_SHRINK. Unmatched listings (and
+    mAh-only ones) get the median alone as battery_score_wh.
     """
     known = [r for r in records if r.get("battery_wh")]
+    priors: dict[tuple, list[float]] = {}
+    for r in known:
+        size = (r.get("screen") or {}).get("inches")
+        size = round(size) if size else None
+        for key in ((_est_class(r), size), (None, size), (None, None)):
+            priors.setdefault(key, []).append(r["battery_wh"])
+
+    def _prior(rec: dict) -> float | None:
+        size = (rec.get("screen") or {}).get("inches")
+        size = round(size) if size else None
+        for key in ((_est_class(rec), size), (None, size), (None, None)):
+            pool = priors.get(key)
+            if pool and len(pool) >= _PRIOR_MIN_SAMPLES:
+                return round(statistics.median(pool), 1)
+        return None
+
     pools: dict[tuple, list[float]] = {}
     for r in known:
         brand = (r.get("brand") or "?").lower()
@@ -857,9 +933,17 @@ def apply_battery_estimates(records: list[dict]) -> dict:
             pools.setdefault(key, []).append(r["battery_wh"])
 
     stats = {"estimated": 0, "line2": 0, "line1": 0, "class": 0,
-             "line2ns": 0, "line1ns": 0, "brandsize": 0, "unmatched": 0}
+             "line2ns": 0, "line1ns": 0, "brandsize": 0, "unmatched": 0, "prior_only": 0}
     for rec in records:
-        if rec.get("battery_wh") or rec.get("battery_mah"):
+        if rec.get("battery_wh"):
+            continue
+        if rec.get("battery_mah"):
+            # mAh without a voltage isn't Wh: keep the published number on
+            # display, score the class median rather than a flat 50 Wh
+            prior = _prior(rec)
+            if prior is not None:
+                rec["battery_score_wh"] = prior
+                stats["prior_only"] += 1
             continue
         brand = (rec.get("brand") or "?").lower()
         size = (rec.get("screen") or {}).get("inches")
@@ -880,10 +964,16 @@ def apply_battery_estimates(records: list[dict]) -> dict:
                 wh = counts[0][1] if counts[0][0] > 1 else statistics.median(pool)
                 match = (level, round(float(wh), 1), len(pool), label)
                 break
+        prior = _prior(rec)
         if not match:
             stats["unmatched"] += 1
+            if prior is not None:
+                rec["battery_score_wh"] = prior
+                stats["prior_only"] += 1
             continue
         level, wh, n, label = match
+        score_wh = wh if prior is None else round(prior + _EST_SHRINK[level] * (wh - prior), 1)
+        rec["battery_score_wh"] = score_wh
         rec["battery_wh"] = wh
         rec["battery_label"] = " · ".join(filter(None, [
             f"~{wh:g} Wh", _battery_chem_label(rec.get("battery"))])) or f"~{wh:g} Wh"
@@ -892,7 +982,6 @@ def apply_battery_estimates(records: list[dict]) -> dict:
         rec["battery_source_url"] = None
         rec["battery_estimate"] = (
             f"mode of {n} similar {label} {size or ''}\" listings".replace('  ', ' ').strip())
-        rec["battery_points"] = battery_points_for(wh)
         stats["estimated"] += 1
         stats[level] += 1
     return stats
@@ -1610,23 +1699,6 @@ def specs_from_noon(name: str | None) -> dict:
     return out
 
 
-def _score_screen(screen: dict) -> float:
-    """Form-factor screen bonuses (touch and physical panel size BOM).
-
-    Panel quality, resolution, color gamut, and refresh rate are scored
-    exclusively via display_points in apply_quality_points to avoid double-counting.
-    """
-    score = 0.0
-    if screen.get("touch"):
-        score += 0.3
-    inches = screen.get("inches") or 0
-    if inches >= 17:
-        score += 0.5          # 17–18" panels cost more BOM and define the big gaming class
-    elif inches >= 16:
-        score += 0.3
-    return score
-
-
 # Conservative idle footprints (GB) subtracted from installed RAM to get what
 # the buyer can actually use. Estimates, not measurements: a fresh Windows 11
 # idles near 3GB and OEM builds with background agents near 5GB; integrated
@@ -1643,12 +1715,18 @@ OS_RESERVE = [
 ]
 
 
+# Swap-thrash threshold on *usable* GB: every 8GB config lands at 3-5.5
+# (Windows/macOS/Linux, iGPU or not); 12GB lands at 7-8 and is a real step up,
+# so the cliff sits between them instead of at 8, which caught 12GB machines.
+RAM_CHOKE_USABLE_GB = 6.0
+
+
 def usable_ram(ram: int | None, os_name: str | None, gpu: dict) -> float | None:
     """Installed RAM minus OS footprint minus iGPU carve-out (None if unknown)."""
     if not ram:
         return None
     low = (os_name or "").lower()
-    reserve = 3.0  # unknown OS: assume Windows-like (most of them are)
+    reserve = 4.0  # unknown OS: assume Windows (most of them are)
     for key, gb in OS_RESERVE:
         if key in low:
             reserve = gb
@@ -1678,7 +1756,7 @@ def build_tags(rec: dict, cpu: dict, gpu: dict, screen: dict, ram, storage, os_n
     if ram and ram >= 32:
         tags.append("32GB+")
     usable = usable_ram(ram, os_name, gpu)
-    if usable is not None and usable <= 8:
+    if usable is not None and usable < RAM_CHOKE_USABLE_GB:
         tags.append("Low RAM")
     weight = parse_weight(_first_text(rec, "weight", "Weight"))
     if weight and weight <= 1.5:
@@ -1734,9 +1812,11 @@ def cpu_efficiency_points(cpu: dict | None) -> float:
     silicon class + suffix (the reliable proxy):
 
     * +2.0 ARM (Apple Silicon, Snapdragon X/X2) — by far the most efficient
-    * +1.0 efficient x86: N-series (6W), V-suffix (Lunar Lake), U-suffix
-      (15W), HS-suffix (35W efficient), Ryzen AI non-HX (Strix/Krackan 15-28W)
-    * 0 neutral: H/P-suffix mainstream, bare numbers with no suffix, unknown
+    * +1.0 low-power x86: N-series (6W), V-suffix (Lunar Lake 17W), U-suffix
+      (15W)
+    * 0 neutral: the 28-45W mainstream — Intel H/P, AMD HS, Ryzen AI 300/400
+      non-HX (Strix/Krackan/Gorgon, 28W default like Core Ultra H), bare
+      numbers with no suffix, unknown
     * -1.5 hungry desktop-replacement: HX/HK/HQ, Xeon, Ryzen AI MAX/MAX+
     """
     if not cpu:
@@ -1750,7 +1830,7 @@ def cpu_efficiency_points(cpu: dict | None) -> float:
         return -1.5
     if re.search(r"\bN\d{2,4}\b", t) or "N-SERIES" in t or re.search(r"\dV\b", t):
         return 1.0
-    if re.search(r"\dU\b", t) or re.search(r"HS\b", t) or "RYZEN AI" in t:
+    if re.search(r"\dU\b", t):
         return 1.0
     return 0.0
 
@@ -1962,9 +2042,11 @@ def compute_game_score(cpu: dict | None, gpu: dict | None, ram: int | None) -> f
 
 
 # Size-normalized portability: class-expected weight (kg) by screen size,
-# from live-catalog integrated medians (13" 1.2 / 14" 1.4 / 15" 1.6 / 16" 1.7).
+# from live-catalog integrated medians (2026-10-11: 13" 1.23 / 14" 1.40 /
+# 15" 1.62 / 16" 1.70). Edges follow marketed classes, not rounding: 13.6-13.8"
+# Airs/XPS are 13" machines and 15.3-15.6" is the 15" class, not 16".
 # A dedicated GPU's cooler + board consistently adds ~0.5 kg at 15-16".
-_WEIGHT_BASE = ((13.5, 1.2), (14.5, 1.4), (15.5, 1.6), (16.5, 1.7), (17.5, 2.4), (99.0, 3.0))
+_WEIGHT_BASE = ((13.9, 1.2), (14.9, 1.4), (15.8, 1.6), (16.9, 1.7), (17.6, 2.4), (99.0, 3.0))
 _WEIGHT_DGPU_ALLOWANCE = 0.5
 _WEIGHT_KG_PER_POINT = 0.5   # 0.5 kg off class-expected = 1 point
 _WEIGHT_MAX_POINTS = 1.5
@@ -2045,23 +2127,20 @@ def apply_weight_lookup(records: list[dict]) -> dict:
 
 
 def apply_quality_points(records: list[dict]) -> dict:
-    """Add quality points beyond the raw specs to perf_score (in place).
+    """Final scoring pass: silicon extras on perf, quality/overall/value (in place).
 
     Runs after apply_ratings / apply_memory / apply_ram_ceiling so the
-    heuristics are known.  Balanced weights:
+    heuristics are known.  Display, build, battery and storage live in
+    compute_quality_score (40% of overall) — nowhere else, so nothing is
+    counted twice.  On top of the specs:
 
-    * build 0-5: ``(build_score - 4)`` — a 5.5 mainstream plastic body earns
-      1.5, a 9 (Zenbook/MacBook-class) earns 5
-    * display 0-2 premium: ``(display_score - 6) * 0.5`` — the market-typical
-      6/10 panel earns nothing; OLED's brightness/gamut/PPI edge earns ~1.5,
-      without double-counting the resolution/panel points already in the build
-    * RAM upgrade 0-2: +1.0 when slots with headroom exist, +0.5 for a ≥32GB
-      ceiling and +1.0 for ≥64GB (capped); soldered or unknown stays neutral
+    * RAM upgrade 0-1: +0.5 when slots with headroom exist, +0.5 more for a
+      ≥32GB ceiling; soldered or unknown stays neutral
     * RAM generation: +0.75 DDR5/LPDDR5(X), -0.5 DDR4/LPDDR4(X), unknown 0
     * GPU VRAM (dedicated only): +0.75 for 12GB+, -0.5 for 6GB or less,
       unknown stays neutral (inferred from the model when not stated)
     * CPU efficiency (perf/watt tier, on overall — never perf): +2.0 ARM
-      (Apple/Snapdragon), +1.0 efficient x86 (N/V/U/HS/Ryzen AI non-HX),
+      (Apple/Snapdragon), +1.0 low-power x86 (N/V/U),
       -1.5 hungry (HX/HK/HQ/Xeon/AI MAX), else neutral.  TDP is not in the
       listings, suffix is the proxy.  perf_score stays pure compute; the
       tier moves overall_score and therefore value_score.
@@ -2071,21 +2150,11 @@ def apply_quality_points(records: list[dict]) -> dict:
 
     Value is recomputed.  Returns aggregate stats for the meta file.
     """
-    stats = {"applied": 0, "build": 0, "display": 0, "ram_upgrade": 0,
-             "ram_type": 0, "cpu_eff": 0, "mobility": 0, "vram": 0, "gpu_idle": 0, "points": 0.0}
+    stats = {"applied": 0, "ram_upgrade": 0, "ram_type": 0, "cpu_eff": 0,
+             "mobility": 0, "vram": 0, "points": 0.0}
     for rec in records:
         if rec.get("perf_score") is None:
             continue
-        b = rec.get("build_score")
-        build_pts = round(min(5.0, max(0.0, (b - 4.0))), 1) if b else 0.0
-        d = rec.get("display_score")
-        # panels matter: below the market-typical 6/10 costs 1.5 per point
-        # (clamped at -4), above it earns 0.8 per point (clamped at +3.5)
-        if d:
-            raw = (d - 6.0) * (1.5 if d < 6.0 else 0.8)
-            display_pts = round(min(3.5, max(-4.0, raw)), 1)
-        else:
-            display_pts = 0.0
         max_gb = rec.get("ram_max_gb")
         ram_pts = 0.0
         slots = rec.get("ram_slots") or 0
@@ -2111,53 +2180,21 @@ def apply_quality_points(records: list[dict]) -> dict:
                 vram_pts = 0.75
             elif vram <= 6:
                 vram_pts = -0.5
-        # dGPU idle draw: a dedicated GPU keeps sipping power even when idle, so
-        # the smaller the battery the worse the unplugged experience.  Charge it
-        # by capacity (MUX/Advanced-Optimus behaviour isn't in the listing data).
-        # Unknown capacity stays neutral.
-        idle_pts = 0.0
-        wh = rec.get("battery_wh")
-        if gpu.get("class") == "dedicated" and wh:
-            if wh < 55:
-                idle_pts = -2.5
-            elif wh < 65:
-                idle_pts = -1.5
-            elif wh < 80:
-                idle_pts = -1.0
-            elif wh < 90:
-                idle_pts = -0.5
-        rec["build_points"] = build_pts
-        rec["display_points"] = display_pts
         rec["ram_upgrade_points"] = ram_pts
         rec["ram_type_points"] = ram_gen_pts
         rec["cpu_eff_points"] = eff_pts
         rec["mobility_points"] = mob_pts
         rec["vram_points"] = vram_pts
-        rec["gpu_idle_points"] = idle_pts
-        rec["quality_points"] = round(build_pts + display_pts, 1)
         silicon_pts = round(ram_pts + ram_gen_pts + vram_pts, 1)
         if silicon_pts:
             stats["applied"] += 1
             stats["points"] += silicon_pts
-        stats["build"] += 1 if build_pts else 0
-        stats["display"] += 1 if display_pts else 0
         stats["ram_upgrade"] += 1 if ram_pts else 0
         stats["ram_type"] += 1 if ram_gen_pts else 0
         stats["cpu_eff"] += 1 if eff_pts else 0
         stats["mobility"] += 1 if mob_pts else 0
         stats["vram"] += 1 if vram_pts else 0
-        stats["gpu_idle"] += 1 if idle_pts else 0
         rec["perf_score"] = round(rec["perf_score"] + silicon_pts, 1)
-        non_perf = round(
-            (rec.get("storage_points") or 0.0)
-            + (rec.get("screen_points") or 0.0)
-            + (rec.get("battery_points") or 0.0)
-            + build_pts
-            + display_pts
-            + idle_pts,
-            2
-        )
-        rec["non_perf_points"] = non_perf
         rec["quality_score"] = compute_quality_score(rec)
         # efficiency + portability live here: perf stays pure compute, the
         # tiers reward what the machine is worth owning (and therefore its value).
@@ -2659,32 +2696,25 @@ def normalize(rec: dict, store: str) -> dict:
     # Raw installed RAM is misleading: the OS kernel, background processes, and iGPU
     # frame buffer carve out 3.5-5.0GB before any user applications launch.
     # An 8GB machine only has ~3.5GB of actual usable headspace for apps (the 0.0 baseline).
-    # Machines with <=8GB usable suffer a real-world -2.0 pt choke due to constant pagefile swapping.
+    # Machines below RAM_CHOKE_USABLE_GB usable (every 8GB config) take a -2.0 pt choke for pagefile swapping.
     usable = usable_ram(ram, os_name, gpu)
-    if usable is not None and usable > 0:
+    # 0 usable (4GB on Windows) floors at 0.5GB like any other starved machine —
+    # skipping it would score 4GB above 6GB and 8GB
+    if usable is not None:
         cap_points = round(7.0 * math.log2(max(usable, 0.5) / 3.5), 1)
     else:
         cap_points = 0.0
-    ram_choke_points = 2.0 if (usable is not None and usable <= 8) else 0.0
+    ram_choke_points = 2.0 if (usable is not None and usable < RAM_CHOKE_USABLE_GB) else 0.0
     ram_points = round(cap_points - ram_choke_points, 1)
-    storage_points = round(min(storage or 0, 2048) / 512 * 1.5, 2)
-    screen_points = _score_screen(screen)
-    # Battery capacity is a premium: a bigger chassis that fits more cells is
-    # worth more, and Wh is test-independent (no endurance-run assumptions).
-    # Only published capacities score; unknown stays neutral (the stores that
-    # don't list Wh would otherwise be systematically penalised).
-    battery_points = battery_points_for(battery_wh)
     if cpu.get("score") is None or gpu.get("score") is None:
         perf = None
         quality = None
         overall = None
-        init_non_perf = None
         value = None
         game = None
         game_val = None
     else:
         perf = round(0.65 * cpu["score"] + 0.15 * gpu["score"] + ram_points, 1)
-        init_non_perf = round(storage_points + screen_points + battery_points, 2)
         quality = compute_quality_score({
             "battery_wh": battery_wh,
             "storage": storage,
@@ -2740,12 +2770,10 @@ def normalize(rec: dict, store: str) -> dict:
         "ram_type": ram_type,
         "storage": storage,
         "storage_type": storage_type,
-        "storage_points": storage_points,
         "npu_tops": npu_tops,
         "npu_source": npu_source,
         "gpu": gpu,
         "screen": screen,
-        "screen_points": screen_points,
         "os": os_name,
         "weight_kg": weight,
         "battery": battery,
@@ -2753,7 +2781,6 @@ def normalize(rec: dict, store: str) -> dict:
         "battery_wh": battery_wh,
         "battery_mah": battery_mah,
         "battery_detail": battery_detail,
-        "battery_points": battery_points,
         "battery_source": battery_source,
         "warranty_years": warranty,
         "rating": rec.get("rating"),
@@ -2763,7 +2790,6 @@ def normalize(rec: dict, store: str) -> dict:
         "ws_score": compute_ws_score(cpu, gpu, ram),
         "game_score": game,
         "game_value": game_val,
-        "non_perf_points": init_non_perf,
         "overall_score": overall,
         "value_score": value,
         "tags": build_tags(rec, cpu, gpu, screen, ram, storage, os_name),
@@ -2985,6 +3011,8 @@ def main() -> int:
 
     # carry published capacity onto identical hardware (part number / agreeing chassis)
     battery_lookup = apply_battery_lookup(records)
+    # same configuration + product line at another store = same battery
+    battery_config_share = apply_battery_config_share(records)
     # and estimate the uncoded tail from similar listings (labelled, awarded capacity points)
     battery_estimates = apply_battery_estimates(records)
     # same chassis = same mass: share agreed weight across identical configs
@@ -3045,11 +3073,11 @@ def main() -> int:
             "gpu_text", "gpu_class", "gpu_vram", "gpu_score", "gpu_mark", "gpu_benchmark",
             "screen_inches", "screen_res",
             "screen_panel", "screen_hz", "touch", "display_score", "display_label",
-            "build_score", "build_label", "build_points", "display_points", "ram_upgrade_points", "ram_type_points", "cpu_eff_points", "mobility_points", "vram_points", "gpu_idle_points", "quality_points", "quality_score", "storage_points", "screen_points", "non_perf_points", "overall_score", "ram_slots", "ram_max_gb", "ram_note", "ram_source", "ram_detail",
+            "build_score", "build_label", "ram_upgrade_points", "ram_type_points", "cpu_eff_points", "mobility_points", "vram_points", "quality_score", "overall_score", "ram_slots", "ram_max_gb", "ram_note", "ram_source", "ram_detail",
             "charging_type", "usbc_charging", "charging_detail", "keyboard_backlit", "webcam_label", "dealbreakers", "advantages",
             "offers", "dup_count", "dup_max", "merged_into",
             "price_local", "currency", "price_expected", "price_flag",
-            "os", "weight_kg", "battery_label", "battery_wh", "battery_mah", "battery_points", "battery_source", "perf_score", "ws_score", "game_score", "game_value", "value_score",
+            "os", "weight_kg", "battery_label", "battery_wh", "battery_mah", "battery_score_wh", "battery_source", "perf_score", "ws_score", "game_score", "game_value", "value_score",
             "marketplace", "seller", "seller_note", "seller_issue_pct", "seller_positive_pct", "seller_reviews", "tags", "url"]
     with (DATA_DIR / "unified_laptops.csv").open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=cols)
@@ -3085,12 +3113,10 @@ def main() -> int:
                 "screen_hz": r["screen"]["hz"], "touch": r["screen"]["touch"],
                 "display_score": r["display_score"], "display_label": r["display_label"],
                 "build_score": r["build_score"], "build_label": r["build_label"],
-                "build_points": r.get("build_points"), "display_points": r.get("display_points"),
                 "ram_upgrade_points": r.get("ram_upgrade_points"), "ram_type_points": r.get("ram_type_points"),
-                "cpu_eff_points": r.get("cpu_eff_points"), "mobility_points": r.get("mobility_points"), "vram_points": r.get("vram_points"), "gpu_idle_points": r.get("gpu_idle_points"), "quality_points": r.get("quality_points"),
+                "cpu_eff_points": r.get("cpu_eff_points"), "mobility_points": r.get("mobility_points"), "vram_points": r.get("vram_points"),
                 "quality_score": r.get("quality_score"),
-                "storage_points": r.get("storage_points"), "screen_points": r.get("screen_points"),
-                "non_perf_points": r.get("non_perf_points"), "overall_score": r.get("overall_score"),
+                "overall_score": r.get("overall_score"),
                 "ram_slots": r.get("ram_slots"), "ram_max_gb": r.get("ram_max_gb"),
                 "ram_note": r.get("ram_note"), "ram_source": r.get("ram_source"), "ram_detail": r.get("ram_detail"),
                 "charging_type": r.get("charging_type"), "usbc_charging": r.get("usbc_charging"),
@@ -3105,7 +3131,8 @@ def main() -> int:
                 "price_expected": r.get("price_expected"), "price_flag": r.get("price_flag"),
                 "os": r["os"], "weight_kg": r["weight_kg"],
                 "battery_label": r.get("battery_label"), "battery_wh": r.get("battery_wh"),
-                "battery_mah": r.get("battery_mah"), "battery_points": r.get("battery_points"),
+                "battery_mah": r.get("battery_mah"),
+                "battery_score_wh": r.get("battery_score_wh"),
                 "battery_source": r.get("battery_source"),
                 "perf_score": r["perf_score"],
                 "ws_score": r.get("ws_score"),
@@ -3143,6 +3170,7 @@ def main() -> int:
         "ram_traps": ram_traps,
         "price_flags": price_flags,
         "battery_lookup": battery_lookup,
+        "battery_config_share": battery_config_share,
         "battery_estimates": battery_estimates,
         "weight_lookup": weight_lookup,
         "quality_points": quality_stats,

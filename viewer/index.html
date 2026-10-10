@@ -2106,7 +2106,7 @@
             Measuring <b>raw installed RAM</b> without comparing against <b>OS natural idle usage is deeply misleading</b>. Modern operating systems (Windows 11, macOS) consume 3.5 to 5.0 GB simply sitting at idle for kernel memory, system daemons, window compositors, and shared iGPU frame buffers:
           </p>
           <ul>
-            <li><b>8 GB Installed (3.5 GB Usable):</b> The zero-point capacity baseline (<code>7.0 × log2(3.5/3.5) = 0.0 pts</code>). Out of 8 GB physical RAM, less than 3.5 GB is actually available for user apps. As soon as you open 10 browser tabs and an office document, the system exhausts physical RAM and enters <b>disk thrashing (SSD pagefile swapping)</b>. Because disk swap is 1,000× slower than RAM, systems with ≤ 8 GB usable incur a real-world <b>−2.0 pt choke penalty</b>. If permanently soldered with 0 upgrade slots, the machine loses an additional <b>−3.0 pts (soldered trap)</b>.</li>
+            <li><b>8 GB Installed (3.5 GB Usable):</b> The zero-point capacity baseline (<code>7.0 × log2(3.5/3.5) = 0.0 pts</code>). Out of 8 GB physical RAM, less than 3.5 GB is actually available for user apps. As soon as you open 10 browser tabs and an office document, the system exhausts physical RAM and enters <b>disk thrashing (SSD pagefile swapping)</b>. Because disk swap is 1,000× slower than RAM, systems below 6 GB usable (every 8 GB configuration) incur a real-world <b>−2.0 pt choke penalty</b>. If permanently soldered with 0 upgrade slots, the machine loses an additional <b>−3.0 pts (soldered trap)</b>.</li>
             <li><b>16 GB Installed (11.3 GB Usable):</b> The modern minimum viable standard (<b>+11.8 pts</b>). Because the OS footprint is already paid for, moving from 8 GB to 16 GB doesn't double application headroom—it <b>more than triples it</b> (from ~3.5 GB to ~11.3 GB usable). Runs standard development tools, multi-tab browsers, and everyday productivity smoothly without choking.</li>
             <li><b>24 GB Installed (19.5 GB Usable):</b> The high-value "Goldilocks" tier (<b>+17.3 pts</b>; +5.5 pts over 16 GB). Delivers nearly 6× the usable headroom of an 8 GB baseline. Common in Apple Silicon (M3/M4 24 GB unified) and Copilot+ thin-and-lights, or asymmetric 8+16 GB SO-DIMM setups. Handles Docker containers and heavy multi-workspace workflows without OS swap.</li>
             <li><b>32 GB Installed (27.5 GB Usable):</b> The power multitasking sweet spot (<b>+20.8 pts</b>; +9.0 pts over 16 GB). Delivers almost <b>9× more usable application memory</b> than an 8 GB machine. Essential for concurrent containers, local VMs, language servers, video timelines, and multi-monitor power workflows.</li>
@@ -2259,7 +2259,7 @@
                 <td><b>RAM Score</b><br><small style="color:var(--muted)">Capacity &amp; Speed</small></td>
                 <td>
                   • <b>Usable Headroom vs OS Idle (8GB Baseline):</b> Installed RAM minus conservative OS idle reserve (Windows: 4.0 GB, macOS: 3.5 GB, Linux: 1.5 GB) and iGPU frame buffer (+1.0 GB). Capacity scaled via <code>7.0 × log2(usable / 3.5)</code>: 8 GB baseline (3.5 GB usable) = 0.0, 16 GB (11.3 GB usable) = +11.8, 24 GB = +17.3, 32 GB = +20.8, 64 GB = +28.7, 128 GB = +35.9 pts.<br>
-                  • <b>Physical Low-RAM Choke:</b> <b>−2.0 pts</b> for machines with ≤ 8 GB usable (penalizes active pagefile disk thrashing and system stutter).<br>
+                  • <b>Physical Low-RAM Choke:</b> <b>−2.0 pts</b> for machines below 6 GB usable — every 8 GB configuration; 12 GB clears it (penalizes active pagefile disk thrashing and system stutter).<br>
                   • <b>Soldered ≤8GB Trap:</b> <b>−3.0 pts</b> surcharge on permanently soldered ≤ 8 GB machines (flagged with <code>ram_trap</code>).<br>
                   • <b>RAM Generation Speed:</b> <b>+0.75 pts</b> for DDR5/LPDDR5(X); <b>−0.5 pts</b> for legacy DDR4.<br>
                   • <b>Expansion Headroom:</b> +0.5 pts for open SO-DIMM slot; +0.5 pts if ceiling ≥ 32 GB (capped at +1.0 pt).<br>
@@ -2291,7 +2291,7 @@
             Value Score = (overall_score ÷ (price_SAR + 1,500)) × 2,000
           </div>
           <p>
-            CPU efficiency (perf/watt tier) lives on <code>overall</code>, never on <code>perf</code>: <b>+2.0</b> ARM (Apple/Snapdragon), <b>+1.0</b> efficient x86 (N/V/U/HS/Ryzen AI non-HX), <b>−1.5</b> hungry (HX/HK/HQ/Xeon/AI MAX), else neutral. TDP is not in the listings, so suffix is the proxy. A 55W HX keeps the higher bench it earned — it just pays for heat, fans and dead-unplugged ownership in overall/value.
+            CPU efficiency (perf/watt tier) lives on <code>overall</code>, never on <code>perf</code>: <b>+2.0</b> ARM (Apple/Snapdragon), <b>+1.0</b> low-power x86 (N/V/U, ~6–17 W), <b>−1.5</b> hungry (HX/HK/HQ/Xeon/AI MAX), else neutral — the 28–45 W mainstream (Intel H/P, AMD HS, Ryzen AI 300/400) scores 0. TDP is not in the listings, so suffix is the proxy. A 55W HX keeps the higher bench it earned — it just pays for heat, fans and dead-unplugged ownership in overall/value.
           </p>
 
           <p>
@@ -2651,9 +2651,9 @@
           </p>
           <ol>
             <li><b>Store-published capacity:</b> Extracted and verified directly from the retailer's specification table (e.g. 75 Wh, 10,000 mAh).</li>
-            <li><b>Model &amp; Chassis Cross-Reference:</b> Inherited from identical part numbers or verified chassis codes across other catalog entries.</li>
+            <li><b>Model &amp; Chassis Cross-Reference:</b> Inherited from identical part numbers or verified chassis codes across other catalog entries, or from the same configuration (brand, chip, RAM, storage, size and product line) at another store when every published unit agrees.</li>
             <li><b>Manufacturer Spec Sheets:</b> Matched against official PSREF (Lenovo), QuickSpecs (HP), or Asus hardware technical specifications.</li>
-            <li><b>Statistical Cluster Estimation:</b> For unlisted models where no part code exists, the engine computes the mode capacity across identical brand, series, and chassis-size peers. Marked with <code>~</code>. To ensure fairness across retailers, estimated capacities earn equal capacity performance points so machines are not penalized merely because a merchant omitted the battery spec.</li>
+            <li><b>Statistical Cluster Estimation:</b> For unlisted models where no part code exists, the engine computes the mode capacity across identical brand, series, and chassis-size peers. Marked with <code>~</code>. To ensure fairness across retailers, estimated capacities still earn battery points so machines are not penalized merely because a merchant omitted the battery spec — but the scored capacity is blended toward the screen-size class median by how reliable the match proved in leave-one-out testing (series-level matches keep ~80% of their deviation, brand-only matches ~30%). Listings with no match at all score the class median: neutral, never a penalty.</li>
           </ol>
 
           <h3>Marketplace sellers — disclosure, not filtering</h3>
@@ -3350,10 +3350,15 @@ function specRow(kind, text, title) {
 }
 function batteryTip(r) {
   if (r.battery_source === "estimated") {
-    return (r.battery_estimate || "estimated from similar listings");
+    const est = r.battery_estimate || "estimated from similar listings";
+    return r.battery_score_wh != null && r.battery_score_wh !== r.battery_wh
+      ? `${est} · scored as ${r.battery_score_wh} Wh (blended toward the size-class median by match confidence)`
+      : est;
   }
   const src = r.battery_source === "model-match"
     ? " · carried over from the identical model number sold elsewhere"
+    : r.battery_source === "config-match"
+      ? " · carried over from the same configuration and product line sold elsewhere"
     : r.battery_source === "chassis-match"
       ? " · carried over from the same chassis (every published unit of it agrees)"
       : r.battery_source === "spec-model"
