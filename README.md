@@ -1,7 +1,6 @@
-# Laptop Chooser — KSA & Philippines
+# Laptop Chooser
 
-Compare every laptop across Jarir, eXtra, noon (KSA) and DataBlitz, PCX, Gigahertz (PH)
-in one normalized catalog: benchmark-calibrated performance/value scores, a 25-peer
+Compare every laptop across six stores in one normalized catalog: benchmark-calibrated performance/value scores, a 25-peer
 typical-price model, deal alerts, and Pareto-frontier sweet-spot detection.
 
 ![Laptop Chooser catalog with value-map chart](docs/screenshot.png)
