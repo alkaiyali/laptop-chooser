@@ -3,10 +3,9 @@
 
 Reads the current viewer payload (viewer/laptops.js, written by normalize.py),
 trims the fields the viewer never touches, inlines the data and the store logos
-into viewer/index.html (and the previous UI, viewer/classic.html), and writes:
+into viewer/index.html, and writes:
 
     deploy/public/index.html    one file — data, logos and code inside
-    deploy/public/classic.html  the previous UI, same treatment
     deploy/public/robots.txt
     deploy/wrangler.jsonc       assets-only Worker config
     deploy/README.md            deploy instructions
@@ -105,6 +104,7 @@ def data_uri(path: Path) -> str:
 
 def main() -> None:
     payload_js = (VIEWER / "laptops.js").read_text()
+    html = (VIEWER / "index.html").read_text()
 
     meta = grab(payload_js, "LAPTOPS_META")
     shortlist = grab(payload_js, "SHORTLIST")
@@ -122,19 +122,17 @@ def main() -> None:
         "window.LAPTOPS = " + js(laptops) + ";",
     ))
 
-    logos = {logo.name: data_uri(logo) for logo in sorted((VIEWER / "logos").iterdir())}
+    # inline the store logos (paths live in the STORE_LOGO map)
+    for logo in sorted((VIEWER / "logos").iterdir()):
+        html = html.replace(f'"logos/{logo.name}"', f'"{data_uri(logo)}"')
+
+    tag = '<script src="laptops.js"></script>'
+    if tag not in html:
+        raise SystemExit("laptops.js script tag not found in viewer/index.html")
+    html = html.replace(tag, "<script>\n" + data_block + "\n</script>")
+
     PUBLIC.mkdir(parents=True, exist_ok=True)
-    # index.html is the current chooser; classic.html is the previous UI, kept reachable
-    for page in ("index.html", "classic.html"):
-        html = (VIEWER / page).read_text()
-        # inline the store logos (paths live in the STORE_LOGO map)
-        for name, uri in logos.items():
-            html = html.replace(f'"logos/{name}"', f'"{uri}"')
-        tag = '<script src="laptops.js"></script>'
-        if tag not in html:
-            raise SystemExit(f"laptops.js script tag not found in viewer/{page}")
-        html = html.replace(tag, "<script>\n" + data_block + "\n</script>")
-        (PUBLIC / page).write_text(html)
+    (PUBLIC / "index.html").write_text(html)
     (PUBLIC / "robots.txt").write_text("User-agent: *\nDisallow: /\n")
     (OUT / "wrangler.jsonc").write_text("""{
   // Assets-only Worker: no script, no bindings — Cloudflare serves the files
