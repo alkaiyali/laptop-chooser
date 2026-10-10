@@ -1,0 +1,19 @@
+# raw HTML cache (can be large); regenerate with the scraper
+cache/
+
+# generated datasets (raw scrapes, price history) — local only, never committed.
+# data/benchmarks/ is versioned: public third-party benchmark tables with sources.
+data/*
+!data/benchmarks/
+
+# review/debug pages that embed raw data — local only, never committed
+dev/
+
+__pycache__/
+*.pyc
+
+# cron refresh output
+logs/
+
+# generated single-file chooser (rebuild with build_worker.py)
+deploy/
