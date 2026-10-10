@@ -1754,6 +1754,61 @@ def cpu_efficiency_points(cpu: dict | None) -> float:
         return 1.0
     return 0.0
 
+
+# --- NPU TOPS: listed value first, curated CPU lookup as fallback --------------
+# Jarir publishes the NPU folklore ("Intel AI Boost up to 47 TOPS", "Qualcomm
+# Hexagon NPU up to 80 TOPS"); the other stores publish nothing. When the
+# listing carries no number, data/benchmarks/npu_specs.json resolves the
+# normalized CPU text to the vendor's published INT8 TOPS (first regex wins,
+# unknown chips stay unknown — never guessed). Display-only for now: no
+# scoring weight yet.
+_NPU_SPECS_PATH = DATA_DIR / "benchmarks" / "npu_specs.json"
+_NPU_SPECS: list | None = None
+_TOPS_RE = re.compile(r"(\d+(?:\.\d+)?)\s*TOPS", re.I)
+
+
+def _load_npu_specs() -> list:
+    """Compiled [(regex, tops)] from data/benchmarks/npu_specs.json (cached)."""
+    global _NPU_SPECS
+    if _NPU_SPECS is None:
+        try:
+            entries = json.loads(_NPU_SPECS_PATH.read_text(encoding="utf-8")).get("chips") or []
+        except Exception as exc:  # noqa: BLE001
+            log.warning("npu_specs.json unavailable: %s", exc)
+            entries = []
+        compiled = []
+        for entry in entries:
+            try:
+                compiled.append((re.compile(entry["match"], re.I), float(entry["tops"])))
+            except Exception:  # noqa: BLE001
+                log.warning("npu_specs: bad entry: %r", entry)
+        _NPU_SPECS = compiled
+    return _NPU_SPECS
+
+
+def parse_npu_tops(rec: dict, cpu: dict) -> tuple[float | None, str | None]:
+    """(tops, source) for a raw record + parsed CPU, or (None, None).
+
+    Source is "listed" (a TOPS number in the listing's own NPU/AI fields or
+    anywhere in its specs) or "cpu-lookup" (the curated per-silicon table,
+    including confident 0 = this silicon physically has no NPU).
+    """
+    npu_text = " ".join(filter(None, [
+        _first_text(rec, "NPU (Neural Processing Unit)", "NPU Processor", "TOPs"),
+        _first_text(rec, "AI (Artificial Intelligence)"),
+    ]))
+    m = _TOPS_RE.search(npu_text or "")
+    if m:
+        return float(m.group(1)), "listed"
+    m = _TOPS_RE.search(_all_specs(rec))
+    if m:
+        return float(m.group(1)), "listed"
+    text = cpu.get("text") or ""
+    for rx, tops in _load_npu_specs():
+        if rx.search(text):
+            return tops, "cpu-lookup"
+    return None, None
+
 # Fixed VRAM per laptop GPU model, used when the listing doesn't state VRAM.
 # RTX 3050 is the 6GB-max config (the 4GB variant is even lower, same verdict).
 _VRAM_BY_MODEL = {
@@ -1906,6 +1961,89 @@ def compute_game_score(cpu: dict | None, gpu: dict | None, ram: int | None) -> f
     return round(0.60 * g_score + 0.25 * c_score + 0.15 * m_score, 1)
 
 
+# Size-normalized portability: class-expected weight (kg) by screen size,
+# from live-catalog integrated medians (13" 1.2 / 14" 1.4 / 15" 1.6 / 16" 1.7).
+# A dedicated GPU's cooler + board consistently adds ~0.5 kg at 15-16".
+_WEIGHT_BASE = ((13.5, 1.2), (14.5, 1.4), (15.5, 1.6), (16.5, 1.7), (17.5, 2.4), (99.0, 3.0))
+_WEIGHT_DGPU_ALLOWANCE = 0.5
+_WEIGHT_KG_PER_POINT = 0.5   # 0.5 kg off class-expected = 1 point
+_WEIGHT_MAX_POINTS = 1.5
+
+
+def _expected_weight(inches: float | None, gpu: dict | None) -> float | None:
+    """Class-expected mass (kg) for a screen size (+dGPU cooling allowance)."""
+    if not inches:
+        return None
+    expected = next(base for edge, base in _WEIGHT_BASE if inches <= edge)
+    if (gpu or {}).get("class") == "dedicated":
+        expected += _WEIGHT_DGPU_ALLOWANCE
+    return expected
+
+
+def mobility_points(weight_kg: float | None, inches: float | None, gpu: dict | None) -> float:
+    """Portability tier for overall_score (never perf_score), ±1.5 max.
+
+    Scores deviation from the *size-class* expectation, so a 16" at its
+    class median earns the same 0 as a 14" at its median — big screens are
+    never punished for being big, only for being heavy *for their size*.
+    Unknown weight or size stays neutral.
+    """
+    if not weight_kg or not inches:
+        return 0.0
+    expected = _expected_weight(inches, gpu)
+    if abs(weight_kg - expected) > 1.0:
+        # shipping-weight listings (eXtra's 2.65 kg 14" MacBook Pro): a laptop
+        # never legitimately deviates this far from its size class, so the
+        # number is bad data — stay neutral rather than punish it.
+        return 0.0
+    return round(min(_WEIGHT_MAX_POINTS, max(-_WEIGHT_MAX_POINTS,
+                                            (expected - weight_kg) / _WEIGHT_KG_PER_POINT)), 1)
+
+
+def apply_weight_lookup(records: list[dict]) -> dict:
+    """Share published weight onto the identical configuration at another store.
+
+    Same config_key = same chassis = same mass, so a noon row (noon never
+    publishes weight) inherits it when every same-config donor with a known
+    weight agrees within 50 g *and* the agreed value is plausible for the
+    size class (shipping-weight clones fail this and stay unknown).
+    Disagreement means someone's number is bad — leave it unknown, never
+    guess. Runs before apply_quality_points so the mobility tier scores
+    consistently across stores.
+    """
+    from dedupe import config_key  # local import: circular at load time
+    donors: dict[tuple, list[float]] = {}
+    for rec in records:
+        key = config_key(rec)
+        w = rec.get("weight_kg")
+        if key and w:
+            donors.setdefault(key, []).append(w)
+    agreed = {}
+    disputed = 0
+    implausible = 0
+    for k, v in donors.items():
+        if not v or max(v) - min(v) > 0.05:
+            disputed += 1
+            continue
+        agreed[k] = v[0]
+    stats = {"shared": 0, "disputed": disputed, "implausible": 0}
+    for rec in records:
+        if rec.get("weight_kg"):
+            continue
+        key = config_key(rec)
+        if not (key and key in agreed):
+            continue
+        w = agreed[key]
+        expected = _expected_weight((rec.get("screen") or {}).get("inches"), rec.get("gpu"))
+        if expected is None or abs(w - expected) > 1.0:
+            stats["implausible"] += 1
+            continue  # a bad donor number must not propagate to clean rows
+        rec["weight_kg"] = w
+        rec["weight_source"] = "config-match"
+        stats["shared"] += 1
+    return stats
+
+
 def apply_quality_points(records: list[dict]) -> dict:
     """Add quality points beyond the raw specs to perf_score (in place).
 
@@ -1927,11 +2065,14 @@ def apply_quality_points(records: list[dict]) -> dict:
       -1.5 hungry (HX/HK/HQ/Xeon/AI MAX), else neutral.  TDP is not in the
       listings, suffix is the proxy.  perf_score stays pure compute; the
       tier moves overall_score and therefore value_score.
+    * Portability (size-normalized weight, on overall — never perf): ±1.5
+      max for deviation from the screen-size class expectation (+0.5 kg
+      allowance for dGPU cooling).  Unknown weight/size stays neutral.
 
     Value is recomputed.  Returns aggregate stats for the meta file.
     """
     stats = {"applied": 0, "build": 0, "display": 0, "ram_upgrade": 0,
-             "ram_type": 0, "cpu_eff": 0, "vram": 0, "gpu_idle": 0, "points": 0.0}
+             "ram_type": 0, "cpu_eff": 0, "mobility": 0, "vram": 0, "gpu_idle": 0, "points": 0.0}
     for rec in records:
         if rec.get("perf_score") is None:
             continue
@@ -1958,6 +2099,7 @@ def apply_quality_points(records: list[dict]) -> dict:
         ram_gen_pts = _RAM_GEN_POINTS.get(rt.group(1), 0.0) if rt else 0.0
         eff_pts = cpu_efficiency_points(rec.get("cpu"))
         gpu = rec.get("gpu") or {}
+        mob_pts = mobility_points(rec.get("weight_kg"), (rec.get("screen") or {}).get("inches"), gpu)
         vram, inferred = _gpu_vram(gpu)
         vram_pts = 0.0
         if gpu.get("class") == "dedicated" and vram:
@@ -1989,6 +2131,7 @@ def apply_quality_points(records: list[dict]) -> dict:
         rec["ram_upgrade_points"] = ram_pts
         rec["ram_type_points"] = ram_gen_pts
         rec["cpu_eff_points"] = eff_pts
+        rec["mobility_points"] = mob_pts
         rec["vram_points"] = vram_pts
         rec["gpu_idle_points"] = idle_pts
         rec["quality_points"] = round(build_pts + display_pts, 1)
@@ -2001,6 +2144,7 @@ def apply_quality_points(records: list[dict]) -> dict:
         stats["ram_upgrade"] += 1 if ram_pts else 0
         stats["ram_type"] += 1 if ram_gen_pts else 0
         stats["cpu_eff"] += 1 if eff_pts else 0
+        stats["mobility"] += 1 if mob_pts else 0
         stats["vram"] += 1 if vram_pts else 0
         stats["gpu_idle"] += 1 if idle_pts else 0
         rec["perf_score"] = round(rec["perf_score"] + silicon_pts, 1)
@@ -2015,9 +2159,9 @@ def apply_quality_points(records: list[dict]) -> dict:
         )
         rec["non_perf_points"] = non_perf
         rec["quality_score"] = compute_quality_score(rec)
-        # efficiency lives here: perf stays pure compute, the tier rewards
-        # what the machine is worth owning (and therefore its value).
-        rec["overall_score"] = round(0.60 * rec["perf_score"] + 0.40 * rec["quality_score"] + eff_pts, 1)
+        # efficiency + portability live here: perf stays pure compute, the
+        # tiers reward what the machine is worth owning (and therefore its value).
+        rec["overall_score"] = round(0.60 * rec["perf_score"] + 0.40 * rec["quality_score"] + eff_pts + mob_pts, 1)
         price = rec.get("price") or 0
         rec["value_score"] = compute_value_score(rec["overall_score"], price)
         rec["ws_score"] = compute_ws_score(rec.get("cpu"), rec.get("gpu"), rec.get("ram"))
@@ -2497,6 +2641,8 @@ def normalize(rec: dict, store: str) -> dict:
 
     # --- real PassMark benchmarks (replaces the old tier heuristic) ---
     apply_benchmarks(cpu, gpu)
+    # --- NPU throughput: listed TOPS first, curated CPU lookup as fallback ---
+    npu_tops, npu_source = parse_npu_tops(rec, cpu)
     # a generic "Integrated" is useless in the compare table — label the actual
     # iGPU from the CPU family (the score already used the closest measured row)
     if gpu.get("class") == "integrated" and not gpu.get("model"):
@@ -2595,6 +2741,8 @@ def normalize(rec: dict, store: str) -> dict:
         "storage": storage,
         "storage_type": storage_type,
         "storage_points": storage_points,
+        "npu_tops": npu_tops,
+        "npu_source": npu_source,
         "gpu": gpu,
         "screen": screen,
         "screen_points": screen_points,
@@ -2839,6 +2987,9 @@ def main() -> int:
     battery_lookup = apply_battery_lookup(records)
     # and estimate the uncoded tail from similar listings (labelled, awarded capacity points)
     battery_estimates = apply_battery_estimates(records)
+    # same chassis = same mass: share agreed weight across identical configs
+    # (noon never publishes weight) so mobility scores consistently per store
+    weight_lookup = apply_weight_lookup(records)
 
     # heuristic display + build/material ratings, and RAM upgrade options
     for rec in records:
@@ -2890,10 +3041,11 @@ def main() -> int:
             "cpu_text", "cpu_family", "cpu_score",             "cpu_mark", "cpu_single", "cpu_benchmark",
             "cpu_score_multi", "cpu_score_single",
             "ram", "ram_usable_gb", "ram_type", "storage", "storage_type",
+            "npu_tops", "npu_source",
             "gpu_text", "gpu_class", "gpu_vram", "gpu_score", "gpu_mark", "gpu_benchmark",
             "screen_inches", "screen_res",
             "screen_panel", "screen_hz", "touch", "display_score", "display_label",
-            "build_score", "build_label", "build_points", "display_points", "ram_upgrade_points", "ram_type_points", "cpu_eff_points", "vram_points", "gpu_idle_points", "quality_points", "quality_score", "storage_points", "screen_points", "non_perf_points", "overall_score", "ram_slots", "ram_max_gb", "ram_note", "ram_source", "ram_detail",
+            "build_score", "build_label", "build_points", "display_points", "ram_upgrade_points", "ram_type_points", "cpu_eff_points", "mobility_points", "vram_points", "gpu_idle_points", "quality_points", "quality_score", "storage_points", "screen_points", "non_perf_points", "overall_score", "ram_slots", "ram_max_gb", "ram_note", "ram_source", "ram_detail",
             "charging_type", "usbc_charging", "charging_detail", "keyboard_backlit", "webcam_label", "dealbreakers", "advantages",
             "offers", "dup_count", "dup_max", "merged_into",
             "price_local", "currency", "price_expected", "price_flag",
@@ -2922,7 +3074,9 @@ def main() -> int:
                 "cpu_score_multi": (r["cpu"].get("benchmark") or {}).get("score_multi"),
                 "cpu_score_single": (r["cpu"].get("benchmark") or {}).get("score_single"),
                 "ram": r["ram"], "ram_usable_gb": r.get("ram_usable_gb"), "ram_type": r["ram_type"], "storage": r["storage"],
-                "storage_type": r["storage_type"], "gpu_text": r["gpu"]["text"],
+                "storage_type": r["storage_type"],
+                "npu_tops": r.get("npu_tops"), "npu_source": r.get("npu_source"),
+                "gpu_text": r["gpu"]["text"],
                 "gpu_class": r["gpu"]["class"], "gpu_vram": r["gpu"].get("vram"), "gpu_score": r["gpu"]["score"],
                 "gpu_mark": (r["gpu"].get("benchmark") or {}).get("mark"),
                 "gpu_benchmark": (r["gpu"].get("benchmark") or {}).get("source"),
@@ -2933,7 +3087,7 @@ def main() -> int:
                 "build_score": r["build_score"], "build_label": r["build_label"],
                 "build_points": r.get("build_points"), "display_points": r.get("display_points"),
                 "ram_upgrade_points": r.get("ram_upgrade_points"), "ram_type_points": r.get("ram_type_points"),
-                "cpu_eff_points": r.get("cpu_eff_points"), "vram_points": r.get("vram_points"), "gpu_idle_points": r.get("gpu_idle_points"), "quality_points": r.get("quality_points"),
+                "cpu_eff_points": r.get("cpu_eff_points"), "mobility_points": r.get("mobility_points"), "vram_points": r.get("vram_points"), "gpu_idle_points": r.get("gpu_idle_points"), "quality_points": r.get("quality_points"),
                 "quality_score": r.get("quality_score"),
                 "storage_points": r.get("storage_points"), "screen_points": r.get("screen_points"),
                 "non_perf_points": r.get("non_perf_points"), "overall_score": r.get("overall_score"),
@@ -2990,9 +3144,13 @@ def main() -> int:
         "price_flags": price_flags,
         "battery_lookup": battery_lookup,
         "battery_estimates": battery_estimates,
+        "weight_lookup": weight_lookup,
         "quality_points": quality_stats,
         "model_codes": {"with_code": sum(1 for r in records if r.get("model_code")),
                         "filled_cross_store": model_codes_filled},
+        "npu": {"listed": sum(1 for r in records if r.get("npu_source") == "listed"),
+                "lookup": sum(1 for r in records if r.get("npu_source") == "cpu-lookup"),
+                "unknown": sum(1 for r in records if not r.get("npu_source"))},
         "php_per_sar": 16.4,
         "benchmarks": {
             "source": "passmark (cpu mark + single thread, 70/30) + notebookcheck (r23 single/multi)",

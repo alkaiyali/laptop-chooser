@@ -1,0 +1,27 @@
+{
+  "_note": "Curated NPU throughput (TOPS, INT8) per CPU family, used only when a store listing does not publish its own TOPS number. First regex match wins — specific silicon before general fallbacks. Anything derivable from the store listings themselves lives in scraper/normalize.py instead. Unknown chips (e.g. Apple M5) are deliberately absent: no guessing.",
+  "updated": "2026-10-11",
+  "chips": [
+    {"match": "SNAPDRAGON\\s+X2|X2E|X2P", "tops": 80, "source": "Qualcomm specs (Hexagon NPU, X2 Elite/Plus)", "confidence": "high"},
+    {"match": "SNAPDRAGON|HEXAGON", "tops": 45, "source": "Qualcomm specs (Hexagon NPU, X Plus/Elite)", "confidence": "high"},
+    {"match": "AI\\s+MAX", "tops": 50, "source": "AMD specs (XDNA2 NPU, Strix Halo)", "confidence": "high"},
+    {"match": "AI\\s+9\\s+HX\\s+37[05]", "tops": 55, "source": "AMD specs (XDNA2 NPU, HX 370/375)", "confidence": "high"},
+    {"match": "RYZEN\\s+AI", "tops": 50, "source": "AMD specs (XDNA2 NPU, AI 300 series)", "confidence": "high"},
+    {"match": "\\b(7840|7640)\\w*|PHOENIX", "tops": 10, "source": "AMD specs (XDNA NPU, Phoenix 7040)", "confidence": "medium"},
+    {"match": "\\b(8840|8845|8945)\\w*|\\bXDNA\\b", "tops": 16, "source": "AMD specs (XDNA NPU, Hawk Point 8040)", "confidence": "high"},
+    {"match": "RYZEN\\s+[579]\\s+2[23456]0\\b", "tops": 16, "source": "AMD specs (XDNA NPU, Ryzen 200 refresh)", "confidence": "medium"},
+    {"match": "ULTRA\\s+(X?[579]\\s+)?3\\d\\d", "tops": 50, "source": "Intel specs (NPU5, Panther Lake)", "confidence": "medium"},
+    {"match": "\\b268V\\b", "tops": 48, "source": "Intel ARK (NPU4, Lunar Lake 268V)", "confidence": "high"},
+    {"match": "\\b25[68]V\\b", "tops": 47, "source": "Intel ARK (NPU4, Lunar Lake 256V/258V)", "confidence": "high"},
+    {"match": "\\b2\\d\\dV\\b", "tops": 40, "source": "Intel ARK (NPU4, Lunar Lake 226V/236V)", "confidence": "high"},
+    {"match": "ULTRA\\s+[3579]\\s+(120|150|100)U?\\b", "tops": 0, "source": "Intel ARK (Series 2 Raptor Lake refresh sold as Core 120U/150U class — no NPU)", "confidence": "medium"},
+    {"match": "ULTRA\\s+[579]\\s+1\\d\\d", "tops": 11, "source": "Intel ARK (AI Boost NPU, Meteor Lake)", "confidence": "high"},
+    {"match": "ULTRA|290HX", "tops": 13, "source": "Intel ARK (NPU3, Arrow Lake H/U/HX)", "confidence": "high"},
+    {"match": "\\bM4\\b", "tops": 38, "source": "Apple specs (16-core Neural Engine, M4)", "confidence": "high"},
+    {"match": "\\bM3\\b", "tops": 18, "source": "Apple specs (16-core Neural Engine, M3)", "confidence": "high"},
+    {"match": "\\bM2\\b", "tops": 15.8, "source": "Apple specs (16-core Neural Engine, M2)", "confidence": "high"},
+    {"match": "\\bM1\\b", "tops": 11, "source": "Apple specs (16-core Neural Engine, M1)", "confidence": "high"},
+    {"match": "A18", "tops": 35, "source": "Apple specs (16-core Neural Engine, A18/A18 Pro)", "confidence": "high"},
+    {"match": "CORE\\s+I[3579]|\\bCORE\\s+[3579]\\b|\\bN\\s?\\d{2,4}\\b|N-SERIES|ATHLON|CELERON|PENTIUM|XEON|\\b(HX|HS|H|U)\\b|\\d(HS|HX|H|U)\\b", "tops": 0, "source": "No NPU on this silicon (Intel i/Core non-Ultra, N-series, Xeon, pre-AI AMD, Atom-class)", "confidence": "high"}
+  ]
+}

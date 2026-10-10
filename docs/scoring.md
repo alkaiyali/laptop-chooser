@@ -17,6 +17,7 @@ for sources and refresh — that folder ships with the repo):
 | RAM / storage | **Usable** RAM = installed − OS footprint (~4 GB on Win/macOS) − 1 GB iGPU carve-out, on a diminishing curve (`5.0 · log2(usable/3.5)`, up to 18 pts) + **−2 choke penalty at ≤8 GB usable** + 3 pt surcharge for permanently soldered ≤8 GB; storage points up to 2 TB |
 | Quality pass | Build rating 0–5, display curve around the market-typical 6/10 panel (below 6 costs 1.5/pt, above earns 0.8/pt), RAM headroom/generation, VRAM, and a dGPU idle-draw charge by battery capacity — so `perf_score`/`value_score` reflect the whole machine |
 | CPU efficiency | Perf/watt tier on `overall_score` only (never `perf_score`): +2.0 ARM, +1.0 efficient x86, −1.5 hungry HX/HK/HQ/Xeon, else neutral |
+| Portability | Size-normalized weight on `overall_score` only: ±1.5 max vs the screen-size class expectation (+0.5 kg dGPU allowance); unknown weight/size neutral |
 | Battery | **Published** Wh only → 0–4 pts over 35–100 Wh. Unknown stays neutral (no endurance assumptions) |
 | Gaming | `game_score` = 60% GPU + 25% single-weighted CPU + 15% gaming RAM curve; `game_value` = FPS/riyal through the same affine formula as value |
 
