@@ -9,19 +9,18 @@ typical-price model, deal alerts, and Pareto-frontier sweet-spot detection.
 
 ## Features
 
-- **Best-value ranking** — measured PassMark/Notebookcheck benchmarks per chip, affine-regularized value score (see [`docs/scoring.md`](docs/scoring.md))
-- **🔥 Deal alerts** — listings delivering ≥1.5× the value of their 25 closest spec peers
-- **⚡ Pareto knees** — max-efficiency inflection points before diminishing returns, with price-drop / hike tracking
-- **Market charts** — value map, workstation (RAM+CPU+GPU), and RAM-ladder frontiers, all click-to-filter
-- **Cross-store dedupe** — identical configs fold into one card with per-store offers
-- **Data-quality layer** — ⚠ unusually-cheap badges, seller open-box warnings, hide filters
-- **Shortlist with historical lows** — ★ tracking, lowest-ever badges, price trends
-- **Light/dark themes**
-- **Compare tray** — up to 3 laptops side-by-side with per-row best highlighted
+- **Start from the use case** — pick Everyday, Study, Gaming, Creative & dev or Travel plus a budget; the score and the hard requirements follow
+- **One verdict per laptop** — Great deal / Sweet spot / Good price / Fair / Pricey, from a 25-peer typical-price model and Pareto-knee detection (see [`docs/scoring.md`](docs/scoring.md))
+- **Dense, sortable list** with benchmark-calibrated scores, or a **price-vs-score map** with the frontier line and drag-to-zoom price range
+- **Detail drawer** — every store's offer, price history, "cheaper with a similar score" alternatives, full spec sheet
+- **Price watch** — only meaningful drops (8%+ into good-price territory) and new deals; the badge counts what's new since your last visit
+- **Saved list and compare** (up to 3, best value per row highlighted), light/dark themes, mobile layout with bottom nav
+- **Cross-store dedupe** — identical configs fold into one entry quoting the cheapest in-stock offer
+- The previous UI is still available at `classic.html`
 
 ## Tech stack
 
-Python scrapers (requests, SQLite/JSONL) · single-file HTML/JS viewer (hand-rolled SVG, no framework, no build step) · Cloudflare Workers static hosting.
+Python scrapers (requests, SQLite/JSONL) · single-file HTML/JS viewer (hand-rolled SVG, no framework, no build step; `viewer/index.html`, previous UI in `viewer/classic.html`) · Cloudflare Workers static hosting.
 
 ## Run it
 
