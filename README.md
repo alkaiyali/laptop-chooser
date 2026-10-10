@@ -2,7 +2,7 @@
 
 Compare every laptop across Jarir, eXtra, noon (KSA) and DataBlitz, PCX, Gigahertz (PH)
 in one normalized catalog: benchmark-calibrated performance/value scores, a 25-peer
-typical-price model, deal alerts, and Pareto-frontier sweet-spot detection — in English and Arabic.
+typical-price model, deal alerts, and Pareto-frontier sweet-spot detection.
 
 ![Laptop Chooser catalog with value-map chart](docs/screenshot.png)
 
@@ -17,7 +17,7 @@ typical-price model, deal alerts, and Pareto-frontier sweet-spot detection — i
 - **Cross-store dedupe** — identical configs fold into one card with per-store offers
 - **Data-quality layer** — ⚠ unusually-cheap badges, seller open-box warnings, hide filters
 - **Shortlist with historical lows** — ★ tracking, lowest-ever badges, price trends
-- **Bilingual EN/عربي** — full RTL Arabic UI (`?lang=ar`), light/dark themes
+- **Light/dark themes**
 - **Compare tray** — up to 3 laptops side-by-side with per-row best highlighted
 
 ## Tech stack
