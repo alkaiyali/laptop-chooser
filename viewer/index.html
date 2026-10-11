@@ -3039,7 +3039,7 @@ const VALUE_P95 = VALUES[Math.floor(VALUES.length * 0.95)] || 1;
 const state = {
   q: "", store: new Set(), brand: new Set(), cpuBrand: new Set(),
   ramMin: 16, storageMin: 0, priceMin: null, priceMax: null, minPerf: 0,
-  gpu: "any", panel: "any", minDisplay: 0, minBuild: 0, touch: false, os: "any", weightMax: null,
+  gpu: "any", panel: "any", minDisplay: 0, minBuild: 0, touch: false, os: new Set(), weightMax: null,
   tags: new Set(), hideMarketplace: false, excludeOOS: true, showDupes: false,
   hideWeakDgpu: true,
   noTn: false, requireUsbc: false, requireBacklit: false, minBatt: 0,
@@ -3050,6 +3050,13 @@ const state = {
 /* ---------------- sidebar ---------------- */
 const BRANDS = [...new Set(DATA.map(r => r.brand).filter(Boolean))]
   .sort((a, b) => DATA.filter(r=>r.brand===b).length - DATA.filter(r=>r.brand===a).length);
+// multi-select, OR'd: "Windows" + "macOS" shows both
+const OS_OPTS = [
+  ["win", "Windows", os => os.startsWith("Windows")],
+  ["pro", "Windows Pro", os => os.startsWith("Windows 11 Pro")],
+  ["mac", "macOS", os => os === "macOS"],
+  ["dos", "DOS / no OS", os => os.startsWith("DOS")],
+];
 const CPU_BRANDS = [...new Set(DATA.map(r => r.cpu?.brand).filter(Boolean))];
 const ALL_TAGS = [...new Set(DATA.flatMap(r => r.tags || []))].sort();
 
@@ -3195,13 +3202,7 @@ function buildSidebar() {
     </div>
     <div class="fgroup">
       <div class="flabel"><span>OS / features</span></div>
-      <select id="f-os">
-        <option value="any">Any OS</option>
-        <option value="win">Windows</option>
-        <option value="pro">Windows Pro</option>
-        <option value="mac">macOS</option>
-        <option value="dos">DOS / no OS</option>
-      </select>
+      <div class="chips chips-row" id="f-os"></div>
       <div class="chips" id="f-tags" style="margin-top:8px"></div>
     </div>
     <div class="fgroup">
@@ -3282,7 +3283,7 @@ function buildSidebar() {
   $("#f-disp").onchange = e => { state.minDisplay = +e.target.value; render(); };
   $("#f-build").onchange = e => { state.minBuild = +e.target.value; render(); };
   $("#f-touch").onchange = e => { state.touch = e.target.checked; render(); };
-  $("#f-os").onchange = e => { state.os = e.target.value; render(); };
+  OS_OPTS.forEach(([k, label]) => $("#f-os").append(chip(label, null, false, () => toggleSet(state.os, k))));
   $("#f-mp").onchange = e => { state.hideMarketplace = e.target.checked; render(); };
   $("#f-vram").onchange = e => { state.hideWeakDgpu = e.target.checked; render(); };
   $("#f-oos").onchange = e => { state.excludeOOS = e.target.checked; render(); };
@@ -3299,9 +3300,9 @@ function buildSidebar() {
 
 function toggleSet(set, v) { set.has(v) ? set.delete(v) : set.add(v); render(); }
 function reset() {
-  state.q = ""; ["store","brand","cpuBrand","tags"].forEach(k => state[k].clear());
+  state.q = ""; ["store","brand","cpuBrand","tags","os"].forEach(k => state[k].clear());
   Object.assign(state, { ramMin:16, storageMin:0, priceMin:null, priceMax:null, minPerf:0,
-    gpu:"any", panel:"any", minDisplay:0, minBuild:0, touch:false, os:"any", weightMax:null, hideMarketplace:false,
+    gpu:"any", panel:"any", minDisplay:0, minBuild:0, touch:false, weightMax:null, hideMarketplace:false,
     excludeOOS:true, showDupes:false, hideWeakDgpu:true,
     noTn:false, requireUsbc:false, requireBacklit:false, minBatt:0,
     ramUp:"off", sort:"value", pareto:"all", xLog:true });
@@ -3359,13 +3360,7 @@ function matches(r) {
   if (state.gpu === "ded" && r.gpu?.class !== "dedicated") return false;
   if (state.gpu === "rtx50" && !/RTX 50/.test(r.gpu?.model || "")) return false;
   if (state.gpu === "rtx40" && !/RTX (4|3|2)0/.test(r.gpu?.model || "")) return false;
-  if (state.os !== "any") {
-    const os = r.os || "";
-    if (state.os === "win" && !os.startsWith("Windows")) return false;
-    if (state.os === "pro" && !os.startsWith("Windows 11 Pro")) return false;
-    if (state.os === "mac" && os !== "macOS") return false;
-    if (state.os === "dos" && !os.startsWith("DOS")) return false;
-  }
+  if (state.os.size && !OS_OPTS.some(([k, , test]) => state.os.has(k) && test(r.os || ""))) return false;
   if (state.tags.size && ![...state.tags].every(t => (r.tags || []).includes(t))) return false;
   if (state.q) {
     const hay = [r.name, r.short_name, r.brand, r.sku, r.model_code, r.cpu?.text, r.cpu?.family, r.gpu?.text, r.gpu?.model,
@@ -3412,7 +3407,8 @@ function render() {
   document.querySelectorAll("#f-storage .chip").forEach((el,i) => el.classList.toggle("on", state.storageMin === [256,512,1024,2048][i]));
   document.querySelectorAll("#f-perf .chip").forEach((el,i) => el.classList.toggle("on", state.minPerf === [0,50,60,70,80,100][i]));
   document.querySelectorAll("#f-weight .chip").forEach((el,i) => el.classList.toggle("on", state.weightMax === [1.4,1.7,2.0,2.5][i]));
-  $("#f-gpu").value = state.gpu; $("#f-panel").value = state.panel; $("#f-os").value = state.os;
+  $("#f-gpu").value = state.gpu; $("#f-panel").value = state.panel;
+  document.querySelectorAll("#f-os .chip").forEach((el,i) => el.classList.toggle("on", state.os.has(OS_OPTS[i][0])));
   $("#f-disp").value = state.minDisplay; $("#f-build").value = state.minBuild;
   $("#f-touch").checked = state.touch; $("#f-mp").checked = state.hideMarketplace;
   $("#f-vram").checked = state.hideWeakDgpu;
@@ -3528,7 +3524,7 @@ function renderActiveFilters() {
   if (state.requireUsbc) add("USB-C charging required", () => state.requireUsbc = false);
   if (state.requireBacklit) add("backlit keyboard required", () => state.requireBacklit = false);
   if (state.minBatt) add("battery ≥ 50 Wh", () => state.minBatt = 0);
-  if (state.os !== "any") add("OS: "+$("#f-os").selectedOptions[0].textContent, () => state.os="any");
+  OS_OPTS.forEach(([k, label]) => { if (state.os.has(k)) add("OS: " + label, () => state.os.delete(k)); });
   if (state.weightMax) add("≤"+state.weightMax+"kg", () => state.weightMax=null);
   if (state.hideMarketplace) add("no marketplace", () => state.hideMarketplace=false);
   if (state.excludeOOS) add("in stock only", () => state.excludeOOS=false);
@@ -4336,13 +4332,13 @@ const PRESETS = [
   { icon: PI.feather, title: "Ultrabooks", sub: "≤1.5 kg, 16GB+",
     apply: () => { reset(); state.weightMax = 1.5; state.ramMin = 16; state.sort = "value"; } },
   { icon: PI.briefcase, title: "Work & study", sub: "16GB+, Windows",
-    apply: () => { reset(); state.ramMin = 16; state.minPerf = 50; state.os = "win"; state.sort = "price_asc"; } },
+    apply: () => { reset(); state.ramMin = 16; state.minPerf = 50; state.os.add("win"); state.sort = "price_asc"; } },
   { icon: PI.cpu, title: "Workstations", sub: "RAM + CPU + GPU focus",
     apply: () => { reset(); state.ramMin = 32; state.sort = "ws"; } },
   { icon: PI.palette, title: "Creators", sub: "32GB+, high perf",
     apply: () => { reset(); state.ramMin = 32; state.sort = "perf"; } },
   { icon: PI.apple, title: "macOS", sub: "MacBooks only",
-    apply: () => { reset(); state.os = "mac"; state.sort = "value"; } },
+    apply: () => { reset(); state.os.add("mac"); state.sort = "value"; } },
   { icon: PI.percent, title: "Biggest savings", sub: "highest discounts",
     apply: () => { reset(); state.sort = "discount"; } },
   { icon: PI.monitor, title: "Best screens", sub: "OLED + display 8+/10",
@@ -6819,6 +6815,7 @@ boot();
     "Performance": "الأداء",
     "AI": "ذكاء اصطناعي",
     "No OS": "بدون نظام",
+    "DOS / no OS": "DOS / بدون نظام",
     "Win Pro": "ويندوز برو",
     "Windows Pro": "ويندوز برو",
     "32GB+": "32GB+",

@@ -1176,6 +1176,8 @@ def parse_screen(rec: dict) -> dict:
         out["inches"] = float(m.group(1).replace(",", "."))
 
     res_text = _first_text(rec, "display resolution", "Screen Resolution", "Display Resolution") or ""
+    if not re.search(r"\d{3,5}\s*[x×]\s*\d{3,4}", res_text):
+        res_text = _res_from_text(rec) or res_text
     m = re.search(r"(\d{3,5})\s*[x×]\s*(\d{3,4})", res_text, re.I)
     if m:
         w, h = int(m.group(1)), int(m.group(2))
@@ -1221,6 +1223,35 @@ def parse_screen(rec: dict) -> dict:
     if re.search(r"\bmulti[- ]touch|touch display|\btouch\b", type_text, re.I):
         out["touch"] = True
     return out
+
+
+# marketing names -> pixels, most specific first. Bare "HD"/"UHD"/"4K" only
+# count next to a display word: "UHD Graphics", "HD webcam" and "4K HDMI
+# output" are not the panel.
+_RES_WORDS = (
+    (r"\bwqxga\b", "2560x1600"), (r"\bqhd\+", "2560x1600"), (r"\b2\.5k\b", "2560x1600"),
+    (r"\b2\.8k\b|\b3k\b", "2880x1800"), (r"\bwqhd\b|\bqhd\b", "2560x1440"),
+    (r"\bwuxga\b|\bfhd\+", "1920x1200"), (r"\bfull[- ]?hd\b|\bfhd\b", "1920x1080"),
+    (r"\b(?:4k|uhd)\b(?:\s*(?:oled|ips|display|screen|panel|touch|\())", "3840x2160"),
+    (r"\bhd\b(?:\s*(?:ips|tn|lcd|display|screen|panel|\())", "1366x768"),
+)
+
+
+def _res_from_text(rec: dict) -> str | None:
+    """Resolution from the title / description / display specs, for stores
+    without a dedicated resolution field ("14\" WUXGA", "FHD (1920 X 1080)")."""
+    specs = rec.get("specs") or {}
+    display_specs = " ".join(f"{v}" for k, v in specs.items()
+                             if re.search(r"display|screen|panel|resolution", str(k), re.I))
+    text = " ".join(filter(None, [rec.get("name"), rec.get("short_description"),
+                                  rec.get("model"), display_specs])).lower()
+    m = re.search(r"\b(\d{4})\s*[x×*]\s*(\d{3,4})\b", text)
+    if m and 1280 <= int(m.group(1)) <= 7680:
+        return f"{m.group(1)}x{m.group(2)}"
+    for rx, res in _RES_WORDS:
+        if re.search(rx, text):
+            return res
+    return None
 
 
 def _res_label(w: int, h: int) -> str:
