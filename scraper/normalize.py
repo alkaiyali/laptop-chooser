@@ -1175,9 +1175,21 @@ def parse_screen(rec: dict) -> dict:
     if m:
         out["inches"] = float(m.group(1).replace(",", "."))
 
+    # priority: verified spec lookup > store resolution field / description >
+    # title. One exception: "1920x1080 (Full HD)" is eXtra/noon's copy-paste
+    # default, so a title naming anything more specific (WUXGA, FHD+, QHD+ …)
+    # beats it — ThinkPad E14 Gen 7, TUF F16, Strix G16 all list FHD wrongly.
     res_text = _first_text(rec, "display resolution", "Screen Resolution", "Display Resolution") or ""
+    res_source = "spec"
     if not re.search(r"\d{3,5}\s*[x×]\s*\d{3,4}", res_text):
-        res_text = _res_from_text(rec) or res_text
+        res_text, res_source = (_res_from_text(rec) or res_text), "text"
+    if re.match(r"\s*1920\s*[x×]\s*1080\b", res_text):
+        title_res = _res_from_text({"name": rec.get("name")})
+        if title_res and title_res != "1920x1080":
+            res_text, res_source = title_res, "title"
+    known = _known_screen(rec)
+    if known:
+        res_text, res_source = known, "lookup"
     m = re.search(r"(\d{3,5})\s*[x×]\s*(\d{3,4})", res_text, re.I)
     if m:
         w, h = int(m.group(1)), int(m.group(2))
@@ -1192,6 +1204,7 @@ def parse_screen(rec: dict) -> dict:
         out["width"], out["height"] = w, h
         out["res"] = f"{w}×{h}"
         out["res_label"] = _res_label(w, h)
+        out["res_source"] = res_source
 
     type_text = " ".join(filter(None, [_first_text(rec, "display type", "Display Type", "Screen Type"),
                                        _first_text(rec, "display resolution")]))
@@ -1229,12 +1242,28 @@ def parse_screen(rec: dict) -> dict:
 # count next to a display word: "UHD Graphics", "HD webcam" and "4K HDMI
 # output" are not the panel.
 _RES_WORDS = (
-    (r"\bwqxga\b", "2560x1600"), (r"\bqhd\+", "2560x1600"), (r"\b2\.5k\b", "2560x1600"),
+    (r"\bwqxga\+", "2880x1800"), (r"\bwqxga\b", "2560x1600"), (r"\bqhd\+", "2560x1600"), (r"\b2\.5k\b", "2560x1600"),
     (r"\b2\.8k\b|\b3k\b", "2880x1800"), (r"\bwqhd\b|\bqhd\b", "2560x1440"),
     (r"\bwuxga\b|\bfhd\+", "1920x1200"), (r"\bfull[- ]?hd\b|\bfhd\b", "1920x1080"),
     (r"\b(?:4k|uhd)\b(?:\s*(?:oled|ips|display|screen|panel|touch|\())", "3840x2160"),
     (r"\bhd\b(?:\s*(?:ips|tn|lcd|display|screen|panel|\())", "1366x768"),
 )
+
+
+# Verified panel resolutions for models whose store listings get it wrong
+# (vendor spec sheets). Matched on title + model; wins over all store text.
+KNOWN_SCREENS: list[tuple[str, str]] = [
+    # ROG Strix G18 (G815L*): every SKU is 18" 2.5K (240Hz 2025 / 300Hz 2026,
+    # Notebookcheck + ASUS spec) — PCX lists "Full-HD"
+    (r"\bg815l", "2560x1600"),
+    # (not the Vector 16 HX AI: MSI ships both QHD+ 240Hz and FHD+ 144Hz under
+    # the same A2XWHG prefix, so its store text can't be overridden blindly)
+]
+
+
+def _known_screen(rec: dict) -> str | None:
+    text = f"{rec.get('name') or ''} {rec.get('model') or ''}".lower()
+    return next((res for rx, res in KNOWN_SCREENS if re.search(rx, text)), None)
 
 
 def _res_from_text(rec: dict) -> str | None:
