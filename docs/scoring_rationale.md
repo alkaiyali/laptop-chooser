@@ -265,7 +265,7 @@ To protect buyers from hidden compromises, the data pipeline and web viewer comp
 
 ### 6.2 Verified Hardware Advantages (`advantages`)
 Conversely, legitimate engineering strengths are surfaced as pro badges:
-* `✔️ Backlit Keyboard`: Confirmed key illumination for low-light productivity; awards a direct **+0.4 build score bonus** to chassis ergonomics.
+* `✔️ Backlit Keyboard`: Confirmed key illumination for low-light productivity; +0.5 on the quality index (see 6.3).
 * `✔️ 2x Upgradable SO-DIMM Slots (Up to 32/64GB)`: Full RAM modularity (as found on the HP 15-fd).
 * `✔️ USB-C Power Delivery`: Universal one-charger travel convenience.
 * `✔️ OLED / 100% sRGB Display`: True color accuracy and high contrast.
@@ -273,12 +273,18 @@ Conversely, legitimate engineering strengths are surfaced as pro badges:
 * `✔️ Large Battery (≥70 Wh)`: Genuine all-day untethered endurance.
 * `✔️ Premium All-Metal Chassis`: Rigid unibody aluminium/magnesium construction.
 
-### 6.3 Keyboard Backlight Build Bonus Integration
-Illuminated keyboards represent a tangible ergonomic and build premium. Machines with verified keyboard backlights (`keyboard_backlit: True`):
-1. **Direct Build Score Boost**: Receive a direct **+0.4 point bonus** on `build_score` (capped at 10.0), shifting edge cases into higher tiers (e.g. 5.6 -> 6.0 Mainstream or 7.2 -> 7.6 Solid) and re-evaluating `build_label`.
-2. **Material Annotation**: `build_material` description appends `" · backlit keyboard"`.
-3. **Downstream Value Lift**: Through `compute_quality_score()` and `apply_quality_points()`, this +0.4 build lift awards $+2.4$ quality points (out of 100) and $+0.96$ points to `overall_score` ($0.40 \times 2.4$), improving the machine's competitive Pareto ranking.
-4. **Verified Advantage Badge**: Displays the `✔️ Backlit Keyboard` badge on laptop cards and in the comparison matrix.
+### 6.3 Keyboard & Charging Modifiers
+Keyboard backlight and USB-C charging are small modifiers inside `compute_quality_score()`, not part of `build_score` (a backlight is not chassis material, and `build_score` also feeds the price-sanity peer space):
+
+| Signal | Quality pts | ≈ overall pts |
+|---|---|---|
+| Backlit keyboard confirmed | +0.5 | +0.2 |
+| No backlight confirmed | −1.0 | −0.4 |
+| USB-C PD charging (incl. barrel + USB-C travel) | +0.5 | +0.2 |
+| Barrel-only charging | −0.5 | −0.2 |
+| Unknown (either) | 0 | 0 |
+
+Unknown is neutral, never a penalty: about half the listings never mention the keyboard (65% at noon vs 25% at eXtra), so rewarding only the listings that say "backlit" would rank the same machine differently by store. A confirmed missing backlight costs more than a confirmed one earns because nearly every modern laptop is backlit. Both signals also show as badges.
 
 ---
 

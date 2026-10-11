@@ -50,7 +50,7 @@ from history import append_snapshot, load_stats  # noqa: E402
 from memory import apply_memory  # noqa: E402
 from moat import sanitize_meta, sanitize_records  # noqa: E402
 from quality import estimated_issue_rate, is_junk, seller_note  # noqa: E402
-from ratings import apply_ratings, BUILD_LABELS  # noqa: E402
+from ratings import apply_ratings  # noqa: E402
 from sanity import flag_prices  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -529,7 +529,7 @@ def compute_value_score(perf: float | None, price: float | None) -> float | None
 
 
 def compute_quality_score(rec: dict) -> float:
-    """0-100 physical hardware & quality index (Display 35%, Build 30%, Battery 20%, Storage 15%)."""
+    """0-100 physical hardware & quality index (Display 35%, Build 30%, Battery 20%, Storage 15%, small feature modifiers)."""
     d_score = rec.get("display_score") or 6.0
     b_score = rec.get("build_score") or 5.5
     # battery_score_wh: shrunk estimate / class median (apply_battery_estimates);
@@ -566,6 +566,14 @@ def compute_quality_score(rec: dict) -> float:
 
     # Modifiers: Touchscreen (+1.5), 16"+ panel (+1.0)
     extra = (1.5 if touch else 0.0) + (1.0 if inches >= 16.0 else 0.0)
+    # Keyboard backlight / USB-C charging: unknown is neutral, never a penalty —
+    # half the listings never mention the keyboard, and thin store text must
+    # not sink a machine. Nearly every modern laptop is backlit, so a confirmed
+    # missing backlight costs more than a confirmed one earns.
+    kbd = rec.get("keyboard_backlit")
+    extra += 0.5 if kbd is True else (-1.0 if kbd is False else 0.0)
+    usbc = rec.get("usbc_charging")
+    extra += 0.5 if usbc is True else (-0.5 if usbc is False else 0.0)
     # dGPU idle battery penalty
     if is_dgpu and wh < 65:
         extra -= 2.0
@@ -2411,14 +2419,10 @@ def apply_hardware_specs_and_warnings(records: list[dict]) -> dict:
         kbd_backlit, kbd_detail = detect_keyboard(rec)
         rec["keyboard_backlit"] = kbd_backlit
         rec["keyboard_detail"] = kbd_detail
+        # scored in compute_quality_score, not build_score: a backlight is
+        # not chassis material, and build feeds the price-sanity peer space
         if kbd_backlit is True:
             stats["backlit"] += 1
-            orig_b = rec.get("build_score") or 5.5
-            new_b = min(10.0, round(orig_b + 0.4, 1))
-            rec["build_score"] = new_b
-            rec["build_label"] = next((lab for cut, lab in BUILD_LABELS if new_b >= cut), "Budget")
-            if "backlit" not in (rec.get("build_material") or "").lower():
-                rec["build_material"] = f"{rec.get('build_material') or ''} · backlit keyboard".strip(" ·")
         elif kbd_backlit is False:
             stats["non_backlit"] += 1
 
