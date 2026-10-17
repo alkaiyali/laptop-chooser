@@ -15,5 +15,8 @@ __pycache__/
 # cron refresh output
 logs/
 
+# update.sh single-flight lock (local only)
+.update.lock
+
 # generated single-file chooser (rebuild with build_worker.py)
 deploy/

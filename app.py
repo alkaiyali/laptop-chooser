@@ -26,6 +26,7 @@ import webbrowser
 from datetime import datetime, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parent
 VIEWER = ROOT / "viewer"
@@ -47,6 +48,15 @@ RATE_LIMIT = 300          # requests
 RATE_WINDOW = 60.0        # seconds
 _hits: dict[str, list[float]] = {}
 _hits_lock = threading.Lock()
+
+# POST /api/shortlist abuse caps: the payload is a handful of SKUs-notes, never
+# megabytes. Unbounded Content-Length + unbounded field lengths = trivial local
+# memory/disk DoS, so reject anything beyond these.
+MAX_SHORTLIST_BODY = 100 * 1024   # bytes
+MAX_SHORTLIST_ITEMS = 500
+MAX_SKU_LEN = 120
+MAX_STORE_LEN = 64
+MAX_NOTE_LEN = 500
 
 
 def _rate_limited(ip: str) -> bool:
@@ -129,6 +139,32 @@ class Handler(SimpleHTTPRequestHandler):
             return True
         return False
 
+    @staticmethod
+    def _loopback_host(host: str | None) -> bool:
+        return host in ("127.0.0.1", "localhost", "::1", "[::1]")
+
+    def _same_origin(self) -> bool:
+        """Reject cross-site POSTs (CSRF) while allowing same-origin + curl.
+
+        Same-origin fetch and curl send no usable cross-site signal, so only
+        reject when the browser *does* declare a cross-site origin: an
+        `Origin`/`Referer` whose host is not loopback. Requiring
+        `Content-Type: application/json` additionally forces a CORS preflight
+        for cross-site JSON, which this server never answers, so plain
+        `no-cors` form/text POSTs cannot smuggle JSON in either.
+        """
+        for hdr in ("Origin", "Referer"):
+            val = self.headers.get(hdr)
+            if not val:
+                continue
+            try:
+                host = urlparse(val).hostname
+            except Exception:  # noqa: BLE001
+                return False
+            if not self._loopback_host(host):
+                return False
+        return True
+
     ROBOTS = (
         "User-agent: *\n"
         "Disallow: /\n"
@@ -177,19 +213,38 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if self._blocked():
             return
+        if not self._same_origin():
+            self._json({"error": "cross-site request rejected"}, status=403)
+            return
+        ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+        if ctype != "application/json":
+            self._json({"error": "Content-Type must be application/json"}, status=415)
+            return
         try:
-            length = int(self.headers.get("Content-Length") or 0)
-            body = json.loads(self.rfile.read(length) or b"{}")
+            try:
+                length = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                raise ValueError("invalid Content-Length")
+            if length < 0 or length > MAX_SHORTLIST_BODY:
+                self._json({"error": f"body too large (max {MAX_SHORTLIST_BODY} bytes)"}, status=413)
+                return
+            raw = self.rfile.read(length) if length else b"{}"
+            if len(raw) > MAX_SHORTLIST_BODY:
+                self._json({"error": f"body too large (max {MAX_SHORTLIST_BODY} bytes)"}, status=413)
+                return
+            body = json.loads(raw or b"{}")
             items = body.get("items", [])
             if not isinstance(items, list):
                 raise ValueError("items must be a list")
+            if len(items) > MAX_SHORTLIST_ITEMS:
+                raise ValueError(f"too many items (max {MAX_SHORTLIST_ITEMS})")
             clean = []
             for item in items:
                 if isinstance(item, dict) and item.get("sku"):
                     clean.append({
-                        "sku": str(item["sku"]),
-                        "store": str(item.get("store") or ""),
-                        "note": str(item.get("note") or ""),
+                        "sku": str(item["sku"])[:MAX_SKU_LEN],
+                        "store": str(item.get("store") or "")[:MAX_STORE_LEN],
+                        "note": str(item.get("note") or "")[:MAX_NOTE_LEN],
                     })
             payload = {"updated": datetime.now(timezone.utc).isoformat(timespec="seconds"), "items": clean}
             SHORTLIST.write_text(json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
@@ -202,6 +257,12 @@ class Handler(SimpleHTTPRequestHandler):
         # never cache the snapshot in the browser, so a reload after a refresh
         # always picks up the new laptops.js
         self.send_header("Cache-Control", "no-store")
+        # baseline hardening that never breaks the inline-script viewer:
+        # no MIME sniffing, no framing (localhost app), minimal referrer.
+        # (No CSP: the page relies on inline scripts/styles + Google Fonts.)
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
         super().end_headers()
 
     def log_message(self, fmt, *args):  # noqa: A003

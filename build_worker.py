@@ -105,7 +105,6 @@ def data_uri(path: Path) -> str:
 def main() -> None:
     payload_js = (VIEWER / "laptops.js").read_text()
     html = (VIEWER / "index.html").read_text()
-
     meta = grab(payload_js, "LAPTOPS_META")
     shortlist = grab(payload_js, "SHORTLIST")
     affiliate = grab(payload_js, "AFFILIATE")
@@ -134,6 +133,15 @@ def main() -> None:
     PUBLIC.mkdir(parents=True, exist_ok=True)
     (PUBLIC / "index.html").write_text(html)
     (PUBLIC / "robots.txt").write_text("User-agent: *\nDisallow: /\n")
+    # Edge hardening that never breaks the inline-script single file (hence no
+    # CSP: the page relies on inline scripts/styles + Google Fonts).
+    (PUBLIC / "_headers").write_text(
+        "/*\n"
+        "  X-Content-Type-Options: nosniff\n"
+        "  X-Frame-Options: DENY\n"
+        "  Referrer-Policy: no-referrer\n"
+        "  Permissions-Policy: camera=(), microphone=(), geolocation=()\n"
+    )
     (OUT / "wrangler.jsonc").write_text("""{
   // Assets-only Worker: no script, no bindings — Cloudflare serves the files
   // in public/ directly (index.html at /) and compresses them at the edge.
@@ -168,6 +176,38 @@ Notes
     print(f"data block : {len(data_block)/1e6:.2f} MB")
     print(f"index.html : {len(out)/1e6:.2f} MB raw · {gz(out)} gzip")
     print(f"wrote {PUBLIC/'index.html'}")
+
+    build_phones(PUBLIC)
+
+
+def build_phones(public: Path) -> None:
+    """Inline viewer/phones.js into viewer/phones.html -> public/phones.html."""
+    js_path = VIEWER / "phones.js"
+    html_path = VIEWER / "phones.html"
+    if not js_path.exists() or not html_path.exists():
+        print("phones payload/page missing — skipping phones build "
+              "(run scraper/normalize_phones.py first)")
+        return
+    payload_js = js_path.read_text()
+    html = html_path.read_text()
+    meta = grab(payload_js, "PHONES_META")
+    phones = grab(payload_js, "PHONES")
+    js = lambda o: json.dumps(o, separators=(",", ":"), ensure_ascii=False).replace("</", "<\\/")
+    data_block = "\n".join((
+        "window.PHONES_META = " + js(meta) + ";",
+        "window.PHONES = " + js(phones) + ";",
+    ))
+    tag = '<script src="phones.js"></script>'
+    if tag not in html:
+        raise SystemExit("phones.js script tag not found in viewer/phones.html")
+    html = html.replace(tag, "<script>\n" + data_block + "\n</script>")
+    # the deployed page lives at /phones.html: point its back-link at /
+    html = html.replace('href="index.html"', 'href="/"')
+    (public / "phones.html").write_text(html)
+    out = (public / "phones.html").read_bytes()
+    gz = (lambda z: f"{len(z)/1e6:.2f} MB")(__import__("gzip").compress(out, 9))
+    print(f"phones.html: {len(out)/1e6:.2f} MB raw · {gz} gzip")
+    print(f"wrote {public/'phones.html'}")
 
 
 if __name__ == "__main__":

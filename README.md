@@ -18,6 +18,9 @@ typical-price model, deal alerts, and Pareto-frontier sweet-spot detection.
 - **Shortlist with historical lows** — ★ tracking, lowest-ever badges, price trends
 - **Light/dark themes**
 - **Compare tray** — up to 3 laptops side-by-side with per-row best highlighted
+- **📱 Phone Chooser** — same idea for smartphones (Jarir + eXtra + GreenTelcom + Ichiban): AnTuTu-based
+  chip scores, camera/battery/display quality index, value per SAR —
+  separate page at `viewer/phones.html` (`/phones.html` when deployed)
 
 ## Tech stack
 
@@ -52,7 +55,9 @@ for methodology.
 
 ```
 scraper/       # per-store scrapers, normalize.py, benchmarks, ratings, dedupe, sanity, moat
+               #  + jarir/extra_phones_scraper.py, normalize_phones.py, phone_benchmarks.py
 viewer/        # the chooser: index.html + generated laptops.js payload + store logos
+               #  + phones.html + generated phones.js payload (separate phone catalog)
 app.py         # local launcher: freshness check + background refresh + static server
 update.sh      # refresh scrapers + normalize (skipped when snapshot is fresh)
 build_worker.py# packages viewer/ into deploy/public/index.html (single file)

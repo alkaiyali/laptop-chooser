@@ -81,3 +81,25 @@ Nothing matched (or mAh with no voltage) → the class+size median itself.
 Heuristic 1–10 scores: panel tech + resolution/density + refresh +
 brightness/gamut for display; product-line materials adjusted by material words
 for build. Sortable and filterable in the viewer.
+
+## Phones (`scraper/normalize_phones.py`, page: `viewer/phones.html`)
+
+Same shape as laptops, phone-native inputs (Jarir + eXtra in SAR, GreenTelcom
++ Ichiban in PHP converted at 16.4 per SAR — cards show both):
+
+| Component | Basis |
+|---|---|
+| Chip (75% of silicon) | AnTuTu v10 total from the curated table (`data/benchmarks/phone_soc.json`), log-scaled 0–100; exact → part-number alias → substring → token → family-median match, reported per record (`est` rows are post-cutoff estimates, labelled `estimate`) |
+| Chip gaps | Listings that only say "Octa-Core" borrow the chip from the same configuration named at the other store (all donors must agree, `config-match`); conflicting or unique generics stay unscored and show without perf/value |
+| RAM / storage | Diminishing curves (`6·log2(ram/4)`, tiered storage points); iPhone RAM comes from a fixed-SKU table (Apple never lists it), everything else from the listing |
+| Quality index (0–100) | Display 35 (OLED 30 / Retina 26 / LCD 20 + size bonus) + camera 25 (heuristic `camera_score` 0–100 ÷ 4: main-sensor MP tiers 40 + sensor-model size 6 + secondary optics 20 + OIS 8 + aperture 6 + front camera 12 + video ceiling 8; sensor sizes curated in `phone_camera_sensors.json`, several named models resolve to the largest; missing rows score neutral-or-zero, never punitive) + battery 25 over 3,000–6,000 mAh + storage tier 15; the camera component also ships standalone as `camera_score` (spec-based heuristic — no DXOMARK-style image-quality testing) |
+| Battery gaps | Jarir publishes chemistry only: eXtra's mAh carries over when every same-line donor agrees within 100 mAh (`config-match`); otherwise the neutral 12 pts |
+| Renewed | Refurbished listings (`Renewed`, `Grade A/B`, …) stay in the catalog with a tag but never fold with new units; the viewer hides them by default |
+
+`value_score = (overall ÷ (price + 2500)) × 2000` — the floor is a
+regularization constant calibrated so the median phone reads "fair" on the
+same 20–28 / 28–35 bands as laptops, keeping value comparable across both
+catalogs. Identical configs (brand + product line + chip + RAM + storage +
+screen size) fold across stores into one card with offers. Only in-stock
+listings ship (no price history yet to validate stale OOS prices), and each
+run rewrites the snapshot.

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phone Chooser — Jarir &amp; eXtra</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22%2338bdf8%22/%3E%3Crect x=%2211%22 y=%225%22 width=%2210%22 height=%2220%22 rx=%222.5%22 fill=%22none%22 stroke=%22%23fff%22 stroke-width=%222%22/%3E%3Ccircle cx=%2216%22 cy=%2221.5%22 r=%221.2%22 fill=%22%23fff%22/%3E%3C/svg%3E">
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('lc-theme');
+    if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    document.documentElement.dataset.theme = t;
+  } catch (e) { document.documentElement.dataset.theme = 'dark'; }
+})();
+</script>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #090d16; --bg2: #0f172a; --card: #111a2e; --card2: #162038;
+    --line: #1e293b; --line-subtle: rgba(255,255,255,0.07);
+    --text: #f1f5f9; --text-bright: #ffffff; --muted: #94a3b8;
+    --accent: #38bdf8; --accent2: #818cf8;
+    --accent-glow: rgba(56,189,248,0.25);
+    --good: #10b981; --warn: #f59e0b;
+    --radius: 14px; --radius-sm: 9px;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f8fafc; --bg2: #ffffff; --card: #ffffff; --card2: #f1f5f9;
+    --line: #e2e8f0; --line-subtle: rgba(0,0,0,0.06);
+    --text: #0f172a; --text-bright: #020617; --muted: #64748b;
+    --accent: #0284c7; --accent2: #4f46e5;
+    --accent-glow: rgba(2,132,199,0.2);
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text);
+    font-family: Inter, system-ui, sans-serif; margin: 0; padding: 0 16px 80px; }
+  header { max-width: 1280px; margin: 0 auto; padding: 28px 4px 12px; }
+  header h1 { margin: 0 0 4px; font-size: 26px; color: var(--text-bright); }
+  header p { margin: 4px 0; color: var(--muted); font-size: 14px; }
+  header a { color: var(--accent); }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+  .layout { display: grid; grid-template-columns: 280px minmax(0,1fr); gap: 20px; align-items: start; }
+  .only-mobile { display: none; }
+
+  /* ---- Sidebar / filters (laptop parity) ---- */
+  aside.filters {
+    position: sticky; top: 16px; background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 16px; max-height: calc(100vh - 32px);
+    overflow-y: auto; overflow-x: hidden;
+  }
+  @media (max-width: 940px) {
+    .layout { grid-template-columns: 1fr; }
+    aside.filters { position: static; max-height: none; }
+    aside.filters:not(.open) { display: none; }
+    .only-mobile { display: inline-flex; }
+  }
+  .filters-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line);
+  }
+  .filters-head h3 {
+    margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-bright);
+  }
+  .filters-head button {
+    background: none; border: none; color: var(--accent); font-size: 11.5px;
+    cursor: pointer; padding: 3px 6px; font-weight: 600; border-radius: 4px;
+  }
+  .filters-head button:hover { background: var(--accent-glow); }
+  .fgroup { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line-subtle); }
+  .fgroup:last-of-type { border-bottom: none; margin-bottom: 4px; padding-bottom: 0; }
+  .flabel {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--muted); margin-bottom: 8px;
+    font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .flabel b { color: var(--text-bright); }
+  aside.filters input[type=search], aside.filters input[type=number], aside.filters select,
+  .toolbar select {
+    width: 100%; background: var(--bg2); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: 8px 11px; outline: none;
+    font-size: 13px; color: var(--text);
+  }
+  aside.filters input[type=search]:focus, aside.filters input[type=number]:focus,
+  aside.filters select:focus, .toolbar select:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    cursor: pointer; user-select: none; border: 1px solid var(--line);
+    background: var(--bg2); border-radius: 7px; padding: 5px 10px;
+    font-size: 12px; color: var(--muted); transition: all 0.15s ease;
+    display: inline-flex; align-items: center;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--text-bright); }
+  .chip.on {
+    background: rgba(56,189,248,0.14); border-color: var(--accent);
+    color: var(--text-bright); font-weight: 600; box-shadow: 0 0 0 1px var(--accent);
+  }
+  .chip .n { opacity: 0.65; font-size: 11px; margin-left: 5px; }
+  .chk {
+    display: flex; align-items: center; gap: 9px; font-size: 12.5px;
+    color: var(--muted); cursor: pointer; margin: 8px 0; user-select: none;
+  }
+  .chk:hover { color: var(--text-bright); }
+  .chk input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+  .btn {
+    background: var(--card2); border: 1px solid var(--line); border-radius: var(--radius-sm);
+    padding: 8px 14px; cursor: pointer; color: var(--text); font-size: 13px; font-weight: 500;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--text-bright); }
+  #f-reset { width: 100%; margin-top: 6px; }
+
+  /* ---- Toolbar + active filters (laptop parity) ---- */
+  .toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0 14px; }
+  .toolbar .count { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .toolbar .count span { color: var(--muted); font-weight: 400; }
+  .toolbar .spacer { flex: 1; }
+  .toolbar select { width: auto; min-width: 190px; font-size: 12.5px; }
+  .active-filters { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
+  .active-filters:empty { margin-bottom: 0; }
+  .active-filters .tag {
+    font-size: 11px; background: rgba(129,140,248,0.12); border: 1px solid rgba(129,140,248,0.35);
+    color: var(--text); border-radius: 6px; padding: 4px 9px;
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .active-filters .tag:hover { border-color: var(--accent); filter: brightness(1.15); }
+
+  .grid { margin: 0; display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 14px 15px; }
+  .prow { display: flex; gap: 12px; align-items: flex-start; }
+  .thumb { width: 64px; height: 64px; object-fit: contain; border-radius: 10px;
+    background: var(--img-bg, transparent); flex: none; }
+  .phead { min-width: 0; }
+  .card h3 { margin: 0 0 2px; font-size: 16px; color: var(--text-bright); }
+  .card .brand { color: var(--muted); font-size: 12px; }
+  .price { font-size: 20px; font-weight: 700; margin: 8px 0 2px; }
+  .price small { font-size: 12px; color: var(--muted); font-weight: 400; }
+  .scores { display: flex; gap: 12px; font-size: 12px; color: var(--muted);
+    margin: 6px 0; flex-wrap: wrap; }
+  .scores b { color: var(--text); }
+  .specs { font-size: 13px; line-height: 1.65; }
+  .tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 11px; border: 1px solid var(--line); border-radius: 20px;
+    padding: 2px 9px; color: var(--muted); }
+  .offers { margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .card a.buy { display: inline-block; margin-top: 10px; color: var(--accent);
+    font-size: 14px; font-weight: 600; }
+  .empty {
+    grid-column: 1 / -1; padding: 60px 24px; text-align: center; color: var(--muted);
+    background: var(--card); border: 1px dashed var(--line); border-radius: var(--radius);
+  }
+  .note { margin: 20px auto 0; color: var(--muted);
+    font-size: 12px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📱 Phone Chooser</h1>
+  <p id="meta">loading…</p>
+  <p><a href="index.html">← Laptop Chooser</a> · Jarir + eXtra + GreenTelcom + Ichiban smartphones, AnTuTu-based scores</p>
+</header>
+<div class="wrap">
+  <div class="layout">
+    <aside class="filters" id="sidebar" aria-label="Phone filters"></aside>
+    <main>
+      <div class="toolbar">
+        <button class="btn only-mobile" id="btnFilters" type="button" aria-expanded="false" aria-controls="sidebar">⚙ Filters</button>
+        <div class="count" id="count"></div>
+        <div class="spacer"></div>
+        <select id="sort" aria-label="Sort phones">
+          <option value="value">Best value</option>
+          <option value="overall">Highest overall</option>
+          <option value="perf">Fastest chip</option>
+          <option value="cam">Best camera</option>
+          <option value="price-asc">Price: low → high</option>
+          <option value="price-desc">Price: high → low</option>
+          <option value="battery">Biggest battery</option>
+        </select>
+      </div>
+      <div class="active-filters" id="activeFilters"></div>
+      <div class="grid" id="grid"></div>
+      <p class="note" id="method"></p>
+    </main>
+  </div>
+</div>
+<script src="phones.js"></script>
+<script>
+(function () {
+  var allPhones = (window.PHONES || []).filter(function (r) { return !r.merged_into; });
+  var meta = window.PHONES_META || {};
+  document.getElementById('meta').textContent =
+    allPhones.length + ' phones · updated ' + (meta.generated_at || '?') +
+    ' · ' + (meta.soc_scored || 0) + ' with benchmarked chips';
+
+  // ---- lookups (laptop parity: store/brand/vendor sets, counts) ----
+  var STORE_ORDER = { Jarir: 0, eXtra: 1, GreenTelcom: 2, Ichiban: 3 };
+  var STORES = Array.from(new Set(
+    allPhones.map(function (r) { return r.store; })
+      .concat(allPhones.reduce(function (acc, r) {
+        (r.offers || []).forEach(function (o) { acc.push(o.store); });
+        return acc;
+      }, []))
+      .filter(Boolean)
+  )).sort(function (a, b) {
+    return (STORE_ORDER[a] != null ? STORE_ORDER[a] : 9) - (STORE_ORDER[b] != null ? STORE_ORDER[b] : 9) || (a < b ? -1 : 1);
+  });
+  var BRANDS = Array.from(new Set(allPhones.map(function (r) { return r.brand; }).filter(Boolean)))
+    .sort(function (a, b) {
+      return allPhones.filter(function (r) { return r.brand === b; }).length -
+             allPhones.filter(function (r) { return r.brand === a; }).length;
+    });
+  var VENDORS = Array.from(new Set(allPhones.map(function (r) { return r.soc && r.soc.vendor; }).filter(Boolean))).sort();
+
+  var RAM_OPTS = [[0, 'Any'], [4, '4GB+'], [6, '6GB+'], [8, '8GB+'], [12, '12GB+']];
+  var STORAGE_OPTS = [[0, 'Any'], [64, '64GB+'], [128, '128GB+'], [256, '256GB+'], [512, '512GB+']];
+  var CHIP_OPTS = [[0, 'Any'], [30, '30+'], [50, '50+'], [70, '70+']];
+  var BATT_OPTS = [[0, 'Any'], [4000, '4000+'], [5000, '5000 mAh+']];
+  var CAM_OPTS = [[0, 'Any'], [12, '12MP+'], [48, '48MP+'], [108, '108MP+']];
+  var PRICE_PRESETS = [[null, 1000], [1000, 2500], [2500, 4500], [4500, null]];
+
+  var state = {
+    q: '', store: new Set(), brand: new Set(), vendor: new Set(),
+    ramMin: 0, storageMin: 0, priceMin: null, priceMax: null,
+    minChip: 0, minBatt: 0, minCam: 0, display: 'any',
+    fiveg: false, flagship: false,
+    stockOnly: true, hideRenewed: true,
+    sort: 'value'
+  };
+
+  function chip(label, count, active, onclick) {
+    var el = document.createElement('span');
+    el.className = 'chip' + (active ? ' on' : '');
+    el.textContent = label;
+    if (count != null) {
+      var n = document.createElement('span');
+      n.className = 'n';
+      n.textContent = count;
+      el.append(' ', n);
+    }
+    el.onclick = onclick;
+    return el;
+  }
+  function toggleSet(set, v) { set.has(v) ? set.delete(v) : set.add(v); render(); }
+
+  function buildSidebar() {
+    var sb = document.getElementById('sidebar');
+    sb.innerHTML =
+      '<div class="filters-head"><h3>Filters</h3><button id="f-reset-top" type="button">Reset</button></div>' +
+      '<div class="fgroup"><div class="flabel"><span>Search</span></div>' +
+        '<input type="search" id="q" placeholder="Search (e.g. iPhone, Galaxy, Pixel)"></div>' +
+      '<div class="fgroup"><div class="flabel"><span>Availability</span></div>' +
+        '<label class="chk"><input type="checkbox" id="stock" checked> In stock only</label>' +
+        '<label class="chk"><input type="checkbox" id="norenew" checked> Hide renewed</label></div>' +
+      '<div class="fgroup"><div class="flabel"><span>Store</span></div>' +
+        '<div class="chips" id="f-store"></div></div>' +
+      '<div class="fgroup"><div class="flabel"><span>Price (SAR)</span></div>' +
+        '<div class="row2"><input type="number" id="f-pmin" placeholder="Min" min="0">' +
+        '<input type="number" id="f-pmax" placeholder="Max" min="0"></div>' +
+        '<div class="chips" id="f-ppresets" style="margin-top:8px"></div></div>' +
+      '<div class="fgroup"><div class="flabel"><span>Brand</span><b id="f-brandcount"></b></div>' +
+        '<div class="chips" id="f-brand"></div></div>' +
+      '<div class="fgroup"><div class="flabel"><span>RAM</span></div>' +
+        '<div class="chips" id="f-ram"></div></div>' +
+      '<div class="fgroup"><div class="flabel"><span>Storage</span></div>' +
+        '<div class="chips" id="f-storage"></div></div>' +
+      '<div class="fgroup"><div class="flabel"><span>Chip vendor</span></div>' +
+        '<div class="chips" id="f-vendor"></div>' +
+        '<div class="flabel" style="margin-top:10px"><span>Min chip score</span></div>' +
+        '<div class="chips" id="f-chip"></div></div>' +
+      '<div class="fgroup"><div class="flabel"><span>Battery</span></div>' +
+        '<div class="chips" id="f-batt"></div>' +
+        '<div class="flabel" style="margin-top:10px"><span>Camera</span></div>' +
+        '<div class="chips" id="f-cam"></div></div>' +
+      '<div class="fgroup"><div class="flabel"><span>Display &amp; network</span></div>' +
+        '<select id="f-display"><option value="any">Any display</option>' +
+        '<option value="OLED">OLED</option><option value="LCD">LCD</option></select>' +
+        '<label class="chk"><input type="checkbox" id="fiveg"> 5G only</label>' +
+        '<label class="chk"><input type="checkbox" id="f-flagship"> Flagship chip only</label></div>' +
+      '<button class="btn" id="f-reset" type="button">Reset all filters</button>';
+
+    // store picker (laptop parity: multi-select chips with counts)
+    var sEl = document.getElementById('f-store');
+    STORES.forEach(function (s) {
+      var c = allPhones.filter(function (r) {
+        return r.store === s || (r.offers || []).some(function (o) { return o.store === s; });
+      }).length;
+      sEl.append(chip(s, c, false, function () { toggleSet(state.store, s); }));
+    });
+    // price presets
+    PRICE_PRESETS.forEach(function (pr) {
+      var a = pr[0], b = pr[1];
+      var label = a && b ? (a / 1000) + '–' + (b / 1000) + 'k' : a ? (a / 1000) + 'k+' : '≤' + (b / 1000) + 'k';
+      var el = document.createElement('span');
+      el.className = 'chip'; el.textContent = label;
+      el.onclick = function () { state.priceMin = a; state.priceMax = b; render(); };
+      document.getElementById('f-ppresets').append(el);
+    });
+    // brand picker (laptop parity: multi-select chips)
+    BRANDS.forEach(function (b) {
+      var c = allPhones.filter(function (r) { return r.brand === b; }).length;
+      document.getElementById('f-brand').append(chip(b, c, false, function () { toggleSet(state.brand, b); }));
+    });
+    VENDORS.forEach(function (v) {
+      document.getElementById('f-vendor').append(chip(v, null, false, function () { toggleSet(state.vendor, v); }));
+    });
+    RAM_OPTS.forEach(function (o) {
+      document.getElementById('f-ram').append(chip(o[1], null, o[0] === 0, function () { state.ramMin = o[0]; render(); }));
+    });
+    STORAGE_OPTS.forEach(function (o) {
+      document.getElementById('f-storage').append(chip(o[1], null, o[0] === 0, function () { state.storageMin = o[0]; render(); }));
+    });
+    CHIP_OPTS.forEach(function (o) {
+      document.getElementById('f-chip').append(chip(o[1], null, o[0] === 0, function () { state.minChip = o[0]; render(); }));
+    });
+    BATT_OPTS.forEach(function (o) {
+      document.getElementById('f-batt').append(chip(o[1], null, o[0] === 0, function () { state.minBatt = o[0]; render(); }));
+    });
+    CAM_OPTS.forEach(function (o) {
+      document.getElementById('f-cam').append(chip(o[1], null, o[0] === 0, function () { state.minCam = o[0]; render(); }));
+    });
+
+    document.getElementById('q').oninput = function (e) { state.q = e.target.value.toLowerCase(); render(); };
+    document.getElementById('stock').onchange = function (e) { state.stockOnly = e.target.checked; render(); };
+    document.getElementById('norenew').onchange = function (e) { state.hideRenewed = e.target.checked; render(); };
+    document.getElementById('fiveg').onchange = function (e) { state.fiveg = e.target.checked; render(); };
+    document.getElementById('f-flagship').onchange = function (e) { state.flagship = e.target.checked; render(); };
+    document.getElementById('f-display').onchange = function (e) { state.display = e.target.value; render(); };
+    document.getElementById('f-pmin').onchange = function (e) {
+      var v = parseInt(e.target.value, 10); state.priceMin = v > 0 ? v : null; render();
+    };
+    document.getElementById('f-pmax').onchange = function (e) {
+      var v = parseInt(e.target.value, 10); state.priceMax = v > 0 ? v : null; render();
+    };
+    document.getElementById('sort').onchange = function (e) { state.sort = e.target.value; render(); };
+    document.getElementById('f-reset').onclick = resetFilters;
+    document.getElementById('f-reset-top').onclick = resetFilters;
+    document.getElementById('btnFilters').onclick = function () {
+      var open = document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('btnFilters').setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+  }
+
+  function resetFilters() {
+    state.q = ''; state.store.clear(); state.brand.clear(); state.vendor.clear();
+    state.ramMin = 0; state.storageMin = 0; state.priceMin = null; state.priceMax = null;
+    state.minChip = 0; state.minBatt = 0; state.minCam = 0; state.display = 'any';
+    state.fiveg = false; state.flagship = false;
+    state.stockOnly = true; state.hideRenewed = true; state.sort = 'value';
+    document.getElementById('sort').value = 'value';
+    render();
+  }
+
+  function matches(r) {
+    if (state.stockOnly && r.in_stock === false) return false;
+    if (state.hideRenewed && r.renewed) return false;
+    if (state.brand.size && !state.brand.has(r.brand)) return false;
+    if (state.vendor.size && !state.vendor.has(r.soc && r.soc.vendor)) return false;
+    if (state.store.size) {
+      var inStore = state.store.has(r.store);
+      var offerInStore = (r.offers || []).some(function (o) { return state.store.has(o.store); });
+      if (!inStore && !offerInStore) return false;
+    }
+    if (state.priceMin != null && (r.price || 1e9) < state.priceMin) return false;
+    if (state.priceMax != null && (r.price || 0) > state.priceMax) return false;
+    if (state.ramMin && (r.ram || 0) < state.ramMin) return false;
+    if (state.storageMin && (r.storage || 0) < state.storageMin) return false;
+    if (state.minChip && ((r.soc && r.soc.score) || 0) < state.minChip) return false;
+    if (state.minBatt && (r.battery_mah || 0) < state.minBatt) return false;
+    if (state.minCam && ((r.cameras && r.cameras.rear_mp) || 0) < state.minCam) return false;
+    if (state.display !== 'any' && (!r.display || r.display.type !== state.display)) return false;
+    if (state.fiveg) {
+      var net = r.network || '';
+      var has5g = net.indexOf('5G') >= 0 || (r.tags || []).indexOf('5G') >= 0;
+      if (!has5g) return false;
+    }
+    if (state.flagship && (r.tags || []).indexOf('Flagship chip') < 0) return false;
+    if (state.q) {
+      var hay = ((r.name || '') + ' ' + ((r.soc && r.soc.text) || '') + ' ' +
+        (r.brand || '') + ' ' + (r.short_name || '')).toLowerCase();
+      var words = state.q.split(/\s+/).filter(Boolean);
+      for (var i = 0; i < words.length; i++) {
+        if (hay.indexOf(words[i]) < 0) return false;
+      }
+    }
+    return true;
+  }
+
+  function fmt(n) { return n == null ? '—' : n; }
+  function stor(n) { return n == null ? '—' : (n >= 1024 ? (n / 1024) + 'TB' : n + 'GB'); }
+
+  function syncSidebar(list) {
+    var q = document.getElementById('q');
+    if (q && document.activeElement !== q && q.value.toLowerCase() !== state.q) q.value = state.q;
+    document.getElementById('stock').checked = state.stockOnly;
+    document.getElementById('norenew').checked = state.hideRenewed;
+    document.getElementById('fiveg').checked = state.fiveg;
+    document.getElementById('f-flagship').checked = state.flagship;
+    document.getElementById('f-display').value = state.display;
+    var pmin = document.getElementById('f-pmin'), pmax = document.getElementById('f-pmax');
+    if (document.activeElement !== pmin) pmin.value = state.priceMin == null ? '' : state.priceMin;
+    if (document.activeElement !== pmax) pmax.value = state.priceMax == null ? '' : state.priceMax;
+    document.querySelectorAll('#f-store .chip').forEach(function (el, i) {
+      el.classList.toggle('on', state.store.has(STORES[i]));
+    });
+    document.querySelectorAll('#f-brand .chip').forEach(function (el, i) {
+      el.classList.toggle('on', state.brand.has(BRANDS[i]));
+    });
+    document.querySelectorAll('#f-vendor .chip').forEach(function (el, i) {
+      el.classList.toggle('on', state.vendor.has(VENDORS[i]));
+    });
+    document.querySelectorAll('#f-ram .chip').forEach(function (el, i) {
+      el.classList.toggle('on', state.ramMin === RAM_OPTS[i][0]);
+    });
+    document.querySelectorAll('#f-storage .chip').forEach(function (el, i) {
+      el.classList.toggle('on', state.storageMin === STORAGE_OPTS[i][0]);
+    });
+    document.querySelectorAll('#f-chip .chip').forEach(function (el, i) {
+      el.classList.toggle('on', state.minChip === CHIP_OPTS[i][0]);
+    });
+    document.querySelectorAll('#f-batt .chip').forEach(function (el, i) {
+      el.classList.toggle('on', state.minBatt === BATT_OPTS[i][0]);
+    });
+    document.querySelectorAll('#f-cam .chip').forEach(function (el, i) {
+      el.classList.toggle('on', state.minCam === CAM_OPTS[i][0]);
+    });
+    document.querySelectorAll('#f-ppresets .chip').forEach(function (el, i) {
+      el.classList.toggle('on', state.priceMin === PRICE_PRESETS[i][0] && state.priceMax === PRICE_PRESETS[i][1]);
+    });
+    var bc = document.getElementById('f-brandcount');
+    if (bc) bc.textContent = state.brand.size ? state.brand.size + ' selected' : '';
+  }
+
+  function renderActiveFilters() {
+    var box = document.getElementById('activeFilters');
+    box.innerHTML = '';
+    function tag(label, clear) {
+      var s = document.createElement('span');
+      s.className = 'tag'; s.textContent = label + ' ×';
+      s.title = 'Clear filter';
+      s.onclick = clear;
+      box.append(s);
+    }
+    state.store.forEach(function (s) { tag(s, function () { state.store.delete(s); render(); }); });
+    state.brand.forEach(function (b) { tag(b, function () { state.brand.delete(b); render(); }); });
+    state.vendor.forEach(function (v) { tag(v, function () { state.vendor.delete(v); render(); }); });
+    if (state.q) tag('“' + state.q + '”', function () { state.q = ''; render(); });
+    if (state.priceMin != null || state.priceMax != null)
+      tag((state.priceMin || 0) + '–' + (state.priceMax || '∞') + ' SAR', function () { state.priceMin = state.priceMax = null; render(); });
+    if (state.ramMin) tag(state.ramMin + 'GB+ RAM', function () { state.ramMin = 0; render(); });
+    if (state.storageMin) tag(stor(state.storageMin) + '+', function () { state.storageMin = 0; render(); });
+    if (state.minChip) tag('chip ' + state.minChip + '+', function () { state.minChip = 0; render(); });
+    if (state.minBatt) tag(state.minBatt + ' mAh+', function () { state.minBatt = 0; render(); });
+    if (state.minCam) tag(state.minCam + 'MP+ cam', function () { state.minCam = 0; render(); });
+    if (state.display !== 'any') tag(state.display, function () { state.display = 'any'; render(); });
+    if (state.fiveg) tag('5G', function () { state.fiveg = false; render(); });
+    if (state.flagship) tag('Flagship chip', function () { state.flagship = false; render(); });
+    if (!state.stockOnly) tag('incl. out of stock', function () { state.stockOnly = true; render(); });
+    if (!state.hideRenewed) tag('incl. renewed', function () { state.hideRenewed = true; render(); });
+  }
+
+  function render() {
+    var list = allPhones.filter(matches);
+    var sort = state.sort;
+    var key = { value: 'value_score', overall: 'overall_score', perf: 'perf_score', cam: 'camera_score' }[sort];
+    if (key) list.sort(function (a, b) { return (b[key] || -1) - (a[key] || -1); });
+    else if (sort === 'price-asc') list.sort(function (a, b) { return (a.price || 1e9) - (b.price || 1e9); });
+    else if (sort === 'price-desc') list.sort(function (a, b) { return (b.price || 0) - (a.price || 0); });
+    else if (sort === 'battery') list.sort(function (a, b) { return (b.battery_mah || 0) - (a.battery_mah || 0); });
+
+    syncSidebar(list);
+    renderActiveFilters();
+    document.getElementById('sort').value = state.sort;
+    document.getElementById('count').textContent = list.length + ' of ' + allPhones.length + ' shown';
+    var grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    if (!list.length) {
+      var e = document.createElement('div');
+      e.className = 'empty';
+      e.textContent = 'No phones match these filters. Try widening the price range or clearing a store/brand.';
+      grid.append(e);
+    }
+    list.slice(0, 300).forEach(function (r) {
+      var d = document.createElement('div');
+      d.className = 'card';
+      var offers = (r.offers || []).map(function (o) {
+        return o.store + ' ' + Math.round(o.price) + ' SAR';
+      }).join(' · ');
+      d.innerHTML =
+        '<div class="prow"><img class="thumb" loading="lazy" alt="">' +
+        '<div class="phead"><h3></h3><div class="brand"></div>' +
+        '<div class="price"></div></div></div>' +
+        '<div class="scores"></div>' +
+        '<div class="specs"></div>' +
+        '<div class="tags"></div>' +
+        (offers ? '<div class="offers"></div>' : '') +
+        (r.url ? '<a class="buy" target="_blank" rel="noopener">View at ' + r.store + ' →</a>' : '');
+      d.querySelector('h3').textContent = (r.brand ? r.brand + ' ' : '') + (r.short_name || r.name);
+      d.querySelector('.brand').textContent = r.store + (r.in_stock === false ? ' · out of stock' : '');
+      var img = d.querySelector('.thumb');
+      if (r.image) { img.src = r.image; }
+      else { img.style.display = 'none'; }
+      d.querySelector('.price').innerHTML = '';
+      d.querySelector('.price').appendChild(document.createTextNode(
+        r.price != null ? Math.round(r.price) + ' SAR' : 'Price TBA'));
+      if (r.currency === 'PHP' && r.price_local != null) {
+        var small = document.createElement('small');
+        small.textContent = ' · ₱' + Math.round(r.price_local).toLocaleString();
+        d.querySelector('.price').appendChild(small);
+      }
+      var sc = d.querySelector('.scores');
+      sc.innerHTML = 'value <b>' + fmt(r.value_score) + '</b> · overall <b>' +
+        fmt(r.overall_score) + '</b> · chip <b>' + fmt(r.soc.score) + '</b> · cam <b>' +
+        fmt(r.camera_score) + '</b>';
+      d.querySelector('.specs').textContent =
+        (r.soc.text || 'Unknown chip') + ' · ' +
+        (r.ram != null ? r.ram + 'GB RAM · ' : '') + stor(r.storage) + ' · ' +
+        (r.display.inches != null ? r.display.inches + '″ ' + (r.display.type || '') + ' · ' : '') +
+        (r.battery_mah != null ? r.battery_mah.toLocaleString() + ' mAh · ' : '') +
+        (r.cameras.rear_mp != null ? r.cameras.rear_mp + 'MP cam' : '');
+      var tags = d.querySelector('.tags');
+      (r.tags || []).forEach(function (t) {
+        var s = document.createElement('span'); s.className = 'tag'; s.textContent = t;
+        tags.appendChild(s);
+      });
+      if (offers) d.querySelector('.offers').textContent = offers;
+      if (r.url) d.querySelector('.buy').href = r.url;
+      grid.appendChild(d);
+    });
+  }
+
+  buildSidebar();
+  document.getElementById('method').textContent =
+    'How scores work: chip score is log-scaled AnTuTu v10 (0–100); performance = 0.75 × chip + RAM/storage curves; ' +
+    'quality = display (35) + camera (25) + battery (25) + storage tier (15); ' +
+    'camera rating (0–100) = main-sensor MP tiers (40) + sensor-model size (6) + secondary optics (20) + ' +
+    'OIS (8) + aperture (6) + front camera (12) + video ceiling (8), shown per card; ' +
+    'overall = 0.6 × perf + 0.4 × quality; value = overall ÷ (price + 2500 SAR) × 2000. ' +
+    'Same-store duplicate configs fold into one card with per-store offers.';
+  render();
+})();
+</script>
+</body>
+</html>

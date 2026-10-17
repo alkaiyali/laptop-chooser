@@ -30,6 +30,11 @@ HEADERS = {
 
 JUNK_VALUES = {"", "n/a", "na", "n.a.", "-", "--", "none", "null", "unknown", "not specified"}
 
+# Largest response we will persist to the on-disk cache. Retail listing pages
+# are tens/hundreds of KB; anything past 5 MB is anomalous (or hostile) and
+# must not fill the disk — it is returned uncached instead.
+MAX_CACHE_BYTES = 5_000_000
+
 log = logging.getLogger("scrapers")
 
 
@@ -94,7 +99,14 @@ class Fetcher:
                 resp = self._session.get(url, timeout=45)
                 self.stats["network"] += 1
                 if resp.status_code == 200:
+                    # Cap what we cache: a rogue giant response must not fill
+                    # the disk. Memory for one page is bounded by requests;
+                    # the persistent damage (cache file) is what we stop here.
+                    content_len = len(resp.content)
                     text = resp.text
+                    if content_len > MAX_CACHE_BYTES:
+                        log.warning("oversize page (%d bytes), not caching: %s", content_len, url)
+                        return text
                     if _looks_like_botwall(text):
                         # Akamai/captcha walls answer 200: usable as a signal
                         # ("index ends here / throttled") but must never be

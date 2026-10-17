@@ -1,0 +1,28 @@
+{
+  "_note": "Phone main-camera sensor sizes (optical format, inch, decimal) from Sony Semiconductor and Samsung Semiconductor spec pages plus corroborating press (Oct 2025). LYT-xxx = Sony LYTIA retail badge; parenthesised names are the same silicon. IMX852 omitted: 50MP confirmed, optical format unverified.",
+  "entries": [
+    {"name": "IMX989", "size_in": 1.0, "mp": 50},
+    {"name": "LYT-900", "size_in": 1.02, "mp": 50},
+    {"name": "LYT-901", "size_in": 0.89, "mp": 200},
+    {"name": "LYT-818", "size_in": 0.78, "mp": 50},
+    {"name": "LYT-828", "size_in": 0.78, "mp": 50},
+    {"name": "IMX888", "size_in": 0.74, "mp": 52, "aka": ["LYT-T808"]},
+    {"name": "LYT-808", "size_in": 0.71, "mp": 50},
+    {"name": "S5KHP2", "size_in": 0.77, "mp": 200, "aka": ["HP2"]},
+    {"name": "S5KHM2", "size_in": 0.66, "mp": 108, "aka": ["HM2"]},
+    {"name": "IMX890", "size_in": 0.64, "mp": 50, "aka": ["LYT-701"]},
+    {"name": "IMX896", "size_in": 0.64, "mp": 50},
+    {"name": "IMX766", "size_in": 0.64, "mp": 50},
+    {"name": "LYT-700", "size_in": 0.64, "mp": 50, "aka": ["LYT-700C", "LYT-710"]},
+    {"name": "IMX921", "size_in": 0.64, "mp": 50, "aka": ["LYT-702"]},
+    {"name": "S5KGN5", "size_in": 0.64, "mp": 50, "aka": ["GN5"]},
+    {"name": "S5KHM6", "size_in": 0.6, "mp": 108, "aka": ["HM6"]},
+    {"name": "IMX882", "size_in": 0.51, "mp": 50, "aka": ["LYT-600"]},
+    {"name": "IMX581", "size_in": 0.5, "mp": 48},
+    {"name": "IMX586", "size_in": 0.5, "mp": 48},
+    {"name": "LYT-610", "size_in": 0.5, "mp": 64},
+    {"name": "OV64B", "size_in": 0.5, "mp": 64},
+    {"name": "IMX615", "size_in": 0.36, "mp": 32},
+    {"name": "LYT-500", "size_in": 0.34, "mp": 50, "aka": ["LYT-501", "LYT-505"]}
+  ]
+}

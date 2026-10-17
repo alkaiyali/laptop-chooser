@@ -1,0 +1,362 @@
+{
+ "entries": [
+  {
+   "antutu_v10": 3050000,
+   "name": "Snapdragon 8 Elite"
+  },
+  {
+   "name": "Dimensity 9500",
+   "antutu_v10": 2900000,
+   "est": true
+  },
+  {
+   "antutu_v10": 2850000,
+   "name": "Snapdragon 8 Elite Gen 5"
+  },
+  {
+   "antutu_v10": 2850000,
+   "name": "Dimensity 9400"
+  },
+  {
+   "antutu_v10": 2750000,
+   "name": "Dimensity 9400+"
+  },
+  {
+   "name": "Snapdragon 8 Gen 5",
+   "antutu_v10": 2700000,
+   "est": true
+  },
+  {
+   "antutu_v10": 2600000,
+   "name": "Snapdragon 8 Gen 3"
+  },
+  {
+   "name": "Exynos 2600",
+   "antutu_v10": 2600000,
+   "est": true
+  },
+  {
+   "antutu_v10": 2500000,
+   "name": "Dimensity 9300"
+  },
+  {
+   "antutu_v10": 2450000,
+   "name": "Dimensity 9400e"
+  },
+  {
+   "antutu_v10": 2400000,
+   "name": "Apple A19 Pro"
+  },
+  {
+   "antutu_v10": 2300000,
+   "name": "Apple A20 Pro"
+  },
+  {
+   "antutu_v10": 2200000,
+   "name": "Snapdragon 8s Gen 4"
+  },
+  {
+   "antutu_v10": 2100000,
+   "name": "Snapdragon 8 Gen 2"
+  },
+  {
+   "antutu_v10": 2050000,
+   "name": "Dimensity 9200"
+  },
+  {
+   "name": "Dimensity 8500-Ultra",
+   "antutu_v10": 2000000,
+   "est": true
+  },
+  {
+   "antutu_v10": 1950000,
+   "name": "Apple A18 Pro"
+  },
+  {
+   "antutu_v10": 1850000,
+   "name": "Dimensity 8400"
+  },
+  {
+   "name": "Apple A19",
+   "antutu_v10": 1850000
+  },
+  {
+   "antutu_v10": 1800000,
+   "name": "Apple A18"
+  },
+  {
+   "antutu_v10": 1750000,
+   "name": "Snapdragon 8s Gen 3"
+  },
+  {
+   "antutu_v10": 1700000,
+   "name": "Exynos 2500"
+  },
+  {
+   "antutu_v10": 1650000,
+   "name": "Tensor G5"
+  },
+  {
+   "antutu_v10": 1600000,
+   "name": "Apple A17 Pro"
+  },
+  {
+   "name": "Dimensity 8350 Ultimate",
+   "antutu_v10": 1550000,
+   "est": true
+  },
+  {
+   "antutu_v10": 1500000,
+   "name": "Dimensity 8300"
+  },
+  {
+   "antutu_v10": 1450000,
+   "name": "Snapdragon 7+ Gen 3"
+  },
+  {
+   "antutu_v10": 1400000,
+   "name": "Exynos 2400"
+  },
+  {
+   "antutu_v10": 1350000,
+   "name": "Tensor G4"
+  },
+  {
+   "antutu_v10": 1300000,
+   "name": "Snapdragon 8+ Gen 1"
+  },
+  {
+   "antutu_v10": 1250000,
+   "name": "Apple A16 Bionic"
+  },
+  {
+   "name": "Kirin 9030",
+   "antutu_v10": 1200000,
+   "est": true
+  },
+  {
+   "antutu_v10": 1150000,
+   "name": "Dimensity 8200"
+  },
+  {
+   "antutu_v10": 1100000,
+   "name": "Snapdragon 7 Gen 4"
+  },
+  {
+   "name": "Exynos 1680",
+   "antutu_v10": 1100000,
+   "est": true
+  },
+  {
+   "antutu_v10": 1050000,
+   "name": "Snapdragon 7s Gen 4"
+  },
+  {
+   "antutu_v10": 1000000,
+   "name": "Exynos 1580"
+  },
+  {
+   "antutu_v10": 950000,
+   "name": "Snapdragon 7 Gen 3"
+  },
+  {
+   "antutu_v10": 900000,
+   "name": "Dimensity 7400"
+  },
+  {
+   "name": "Dimensity 7100",
+   "antutu_v10": 900000,
+   "est": true
+  },
+  {
+   "name": "Dimensity 7360",
+   "antutu_v10": 880000,
+   "est": true
+  },
+  {
+   "antutu_v10": 850000,
+   "name": "Apple A15 Bionic"
+  },
+  {
+   "name": "Exynos 2200",
+   "antutu_v10": 850000,
+   "est": true
+  },
+  {
+   "antutu_v10": 820000,
+   "name": "Dimensity 7300"
+  },
+  {
+   "antutu_v10": 800000,
+   "name": "Snapdragon 7s Gen 3"
+  },
+  {
+   "antutu_v10": 780000,
+   "name": "Tensor G3"
+  },
+  {
+   "antutu_v10": 750000,
+   "name": "Exynos 1480"
+  },
+  {
+   "antutu_v10": 720000,
+   "name": "Snapdragon 6 Gen 4"
+  },
+  {
+   "antutu_v10": 700000,
+   "name": "Dimensity 7200"
+  },
+  {
+   "name": "Kirin 8020",
+   "antutu_v10": 700000,
+   "est": true
+  },
+  {
+   "antutu_v10": 650000,
+   "name": "Snapdragon 7 Gen 1"
+  },
+  {
+   "name": "Dimensity 1200",
+   "antutu_v10": 650000,
+   "est": true
+  },
+  {
+   "antutu_v10": 600000,
+   "name": "Helio G99"
+  },
+  {
+   "name": "Kirin 8000",
+   "antutu_v10": 600000,
+   "est": true
+  },
+  {
+   "antutu_v10": 580000,
+   "name": "Exynos 1380"
+  },
+  {
+   "name": "Snapdragon 778G",
+   "antutu_v10": 560000,
+   "est": true
+  },
+  {
+   "antutu_v10": 550000,
+   "name": "Snapdragon 6 Gen 3"
+  },
+  {
+   "name": "Dimensity 7025-Ultra",
+   "antutu_v10": 550000,
+   "est": true
+  },
+  {
+   "antutu_v10": 520000,
+   "name": "Dimensity 6300"
+  },
+  {
+   "antutu_v10": 500000,
+   "name": "Snapdragon 6s Gen 3"
+  },
+  {
+   "name": "Dimensity 7020",
+   "antutu_v10": 500000,
+   "est": true
+  },
+  {
+   "antutu_v10": 480000,
+   "name": "Exynos 1330"
+  },
+  {
+   "name": "Helio G200",
+   "antutu_v10": 480000,
+   "est": true
+  },
+  {
+   "name": "Helio G92",
+   "antutu_v10": 470000,
+   "est": true
+  },
+  {
+   "antutu_v10": 450000,
+   "name": "Helio G91"
+  },
+  {
+   "name": "Dimensity 6400",
+   "antutu_v10": 450000,
+   "est": true
+  },
+  {
+   "name": "Snapdragon 4 Gen 2",
+   "antutu_v10": 450000,
+   "est": true
+  },
+  {
+   "antutu_v10": 430000,
+   "name": "Dimensity 6100"
+  },
+  {
+   "name": "Helio G100 Ultimate",
+   "antutu_v10": 430000,
+   "est": true
+  },
+  {
+   "name": "Unisoc T7250",
+   "antutu_v10": 430000,
+   "est": true
+  },
+  {
+   "name": "Snapdragon 6s 4G Gen 2",
+   "antutu_v10": 430000,
+   "est": true
+  },
+  {
+   "antutu_v10": 400000,
+   "name": "Snapdragon 685"
+  },
+  {
+   "antutu_v10": 380000,
+   "name": "Helio G85"
+  },
+  {
+   "name": "Helio G81",
+   "antutu_v10": 380000,
+   "est": true
+  },
+  {
+   "name": "Dimensity 810",
+   "antutu_v10": 380000,
+   "est": true
+  },
+  {
+   "antutu_v10": 350000,
+   "name": "Unisoc T820"
+  },
+  {
+   "antutu_v10": 300000,
+   "name": "Unisoc T770"
+  },
+  {
+   "antutu_v10": 250000,
+   "name": "Unisoc T616"
+  },
+  {
+   "name": "Unisoc T612",
+   "antutu_v10": 250000,
+   "est": true
+  },
+  {
+   "name": "Unisoc T700",
+   "antutu_v10": 190000,
+   "est": true
+  },
+  {
+   "name": "Unisoc 9863A1",
+   "antutu_v10": 120000,
+   "est": true
+  }
+ ],
+ "fetched_at": "2026-10-13T00:00:00+00:00",
+ "max": 3200000,
+ "min": 200000,
+ "note": "Approximate AnTuTu v10 totals (Oct 2025 runs, median of published device scores). Apple rows are iOS AnTuTu runs, cross-comparable within ~10%. Entries flagged est:true are post-cutoff estimates for 2026 chips with no published runs yet — scored on the same log scale, labelled estimate per record. Refresh: edit this file and keep entries sorted.",
+ "source": "antutu_v10_approx_oct2025",
+ "version": 1
+}

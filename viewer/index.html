@@ -1760,6 +1760,7 @@
         <button class="view-tab active" id="tabCatalog" type="button">Catalog</button>
         <button class="view-tab" id="tabKnees" type="button">Knee Alerts <span class="tab-badge" id="badgeKneeAlerts"></span></button>
         <button class="view-tab" id="tabNotes" type="button">Field Notes</button>
+        <a class="view-tab" href="phones.html" style="text-decoration:none">📱 Phones</a>
       </nav>
       <div class="header-right">
         <select id="langSel" class="lang-sel" aria-label="Language / اللغة" data-i18n-skip dir="ltr"
@@ -3040,7 +3041,7 @@ const state = {
   q: "", store: new Set(), brand: new Set(), cpuBrand: new Set(),
   ramMin: 16, storageMin: 0, priceMin: null, priceMax: null, minPerf: 0,
   gpu: "any", panel: "any", minDisplay: 0, minBuild: 0, touch: false, os: new Set(), weightMax: null,
-  tags: new Set(), hideMarketplace: false, excludeOOS: true, showDupes: false,
+  tags: new Set(), pins: new Set(), hideMarketplace: false, excludeOOS: true, showDupes: false,
   hideWeakDgpu: true,
   noTn: false, requireUsbc: false, requireBacklit: false, minBatt: 0,
   ramUp: "off", shortlistOnly: false, sort: "value", pareto: "all",
@@ -3089,9 +3090,26 @@ function syncSliders() {
 }
 
 function chip(label, count, active, onclick) {
+  // `label` is untrusted (brand / tag / store names come from scraped DATA),
+  // so render as text — never innerHTML. Use chipHtml() only for the
+  // hardcoded store-logo markup below.
   const el = document.createElement("span");
   el.className = "chip" + (active ? " on" : "");
-  el.innerHTML = label + (count != null ? ` <span class="n">${count}</span>` : "");
+  el.textContent = label;
+  if (count != null) {
+    const n = document.createElement("span");
+    n.className = "n";
+    n.textContent = count;
+    el.append(" ", n);
+  }
+  el.onclick = onclick;
+  return el;
+}
+function chipHtml(html, count, active, onclick) {
+  // Trusted-HTML variant: callers pass only hardcoded markup (store logos).
+  const el = document.createElement("span");
+  el.className = "chip" + (active ? " on" : "");
+  el.innerHTML = html + (count != null ? ` <span class="n">${Number(count)}</span>` : "");
   el.onclick = onclick;
   return el;
 }
@@ -3219,11 +3237,11 @@ function buildSidebar() {
     <button class="btn" id="f-reset" style="width:100%">Reset all filters</button>
   `;
 
-  // stores
+  // stores (storeLogo() is hardcoded <img> markup — the only trusted-HTML chip)
   const sEl = $("#f-store");
   STORES.forEach(s => {
     const c = DATA.filter(r => r.store === s || (r.offers || []).some(o => o.store === s)).length;
-    sEl.append(chip(storeLogo(s), c, false, () => toggleSet(state.store, s)));
+    sEl.append(chipHtml(storeLogo(s), c, false, () => toggleSet(state.store, s)));
   });
   // price presets
   const presets = [[null,3000],[3000,4500],[4500,6500],[6500,null]];
@@ -3300,7 +3318,7 @@ function buildSidebar() {
 
 function toggleSet(set, v) { set.has(v) ? set.delete(v) : set.add(v); render(); }
 function reset() {
-  state.q = ""; ["store","brand","cpuBrand","tags","os"].forEach(k => state[k].clear());
+  state.q = ""; ["store","brand","cpuBrand","tags","pins","os"].forEach(k => state[k].clear());
   Object.assign(state, { ramMin:16, storageMin:0, priceMin:null, priceMax:null, minPerf:0,
     gpu:"any", panel:"any", minDisplay:0, minBuild:0, touch:false, weightMax:null, hideMarketplace:false,
     excludeOOS:true, showDupes:false, hideWeakDgpu:true,
@@ -3362,6 +3380,8 @@ function matches(r) {
   if (state.gpu === "rtx40" && !/RTX (4|3|2)0/.test(r.gpu?.model || "")) return false;
   if (state.os.size && !OS_OPTS.some(([k, , test]) => state.os.has(k) && test(r.os || ""))) return false;
   if (state.tags.size && ![...state.tags].every(t => (r.tags || []).includes(t))) return false;
+  // pinned listings from chart clicks (OR'd: a stack click pins every member)
+  if (state.pins.size && !state.pins.has(r.merged_into || r.id)) return false;
   if (state.q) {
     const hay = [r.name, r.short_name, r.brand, r.sku, r.model_code, r.cpu?.text, r.cpu?.family, r.gpu?.text, r.gpu?.model,
                  r.os, r.model, r.screen?.res, r.screen?.panel, (r.tags||[]).join(" "),
@@ -3504,10 +3524,16 @@ function updateCount() {
 function renderActiveFilters() {
   const el = $("#activeFilters"); el.innerHTML = "";
   const add = (label, clear) => {
-    const t = document.createElement("span"); t.className = "tag"; t.innerHTML = label + " ✕";
+    // Labels carry user input (search box) and scraped values (store/brand/
+    // tags): textContent, never innerHTML, so neither can inject markup.
+    const t = document.createElement("span"); t.className = "tag"; t.textContent = label + " ✕";
     t.onclick = () => { clear(); render(); }; el.append(t);
   };
   if (state.q) add(`“${state.q}”`, () => { state.q=""; $("#f-q").value=""; });
+  state.pins.forEach(id => {
+    const pr = DATA_ALL.find(x => x.id === id);
+    add(`📌 ${pr ? (pr.short_name || pr.name || id) : id}`, () => state.pins.delete(id));
+  });
   state.store.forEach(s => add(s, () => state.store.delete(s)));
   state.brand.forEach(b => add(b, () => state.brand.delete(b)));
   state.cpuBrand.forEach(b => add(b + " CPU", () => state.cpuBrand.delete(b)));
@@ -3551,14 +3577,32 @@ const ICON = {
 };
 
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+// Only http(s) retailer links ever render as clickable hrefs. Scraped `url`
+// fields are third-party data: without a scheme whitelist a poisoned
+// `javascript:` URL would execute on click despite HTML-escaping.
+function safeHttpUrl(url) {
+  if (typeof url !== "string") return "#";
+  const t = url.trim();
+  if (/^https?:\/\//i.test(t)) return t;
+  return "#";
+}
+// Product images render in <img>: allow http(s) + inline data images only,
+// so a poisoned `javascript:`/non-image scheme can never become a src.
+function safeImgSrc(url) {
+  if (typeof url !== "string") return "";
+  const t = url.trim();
+  if (/^https?:\/\//i.test(t) || /^data:image\//i.test(t)) return t;
+  return "";
+}
 // Affiliate tags, injected at build time by normalize.py from env
 // (NOON_AFFILIATE="..." etc.) as raw per-store query strings. Empty = as-is.
 const AFFILIATE = window.AFFILIATE || {};
 function affUrl(store, url) {
-  if (!url || url === "#") return url || "#";
+  const clean = safeHttpUrl(url);
+  if (clean === "#") return "#";
   const qs = AFFILIATE[(store || "").toLowerCase()];
-  if (!qs) return url;
-  return url + (url.includes("?") ? "&" : "?") + qs;
+  if (!qs) return clean;
+  return clean + (clean.includes("?") ? "&" : "?") + qs;
 }
 function affRel(store) {
   return AFFILIATE[(store || "").toLowerCase()] ? "noopener sponsored" : "noopener";
@@ -3873,7 +3917,7 @@ function card(r) {
   const el = document.createElement("div");
   el.className = "card";
   const img = r.image
-    ? `<img src="${escapeHtml(r.image)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.display='none';var s=document.createElement('span');s.className='noimg';s.textContent='💻';this.parentNode.appendChild(s)">`
+    ? `<img src="${escapeHtml(safeImgSrc(r.image))}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.display='none';var s=document.createElement('span');s.className='noimg';s.textContent='💻';this.parentNode.appendChild(s)">`
     : `<span class="noimg">💻</span>`;
   const cpu = r.cpu?.model && r.cpu.model !== r.cpu.family ? r.cpu.model : (r.cpu?.family || null);
   const gpuText = r.gpu?.model || (r.gpu?.class ? (r.gpu.class === "dedicated" ? "Dedicated GPU" : "Integrated") : null);
@@ -4117,7 +4161,7 @@ function renderDetail(id) {
   body.innerHTML = `
     <div class="crumbs"><a href="#catalog">← Back to catalog</a> · ${escapeHtml(r.store)}${r.brand ? " · " + escapeHtml(r.brand) : ""}</div>
     <div class="d-hero">
-      <div class="d-img">${r.image ? `<img src="${escapeHtml(r.image)}" alt="${escapeHtml(title)}" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : "💻"}</div>
+      <div class="d-img">${r.image ? `<img src="${escapeHtml(safeImgSrc(r.image))}" alt="${escapeHtml(title)}" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : "💻"}</div>
       <div>
         <div class="d-badges">
           <span class="badge store ${storeSlug(r.store)}">${storeLogo(r.store)}</span>
@@ -4140,7 +4184,7 @@ function renderDetail(id) {
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
           <button class="btn ghost star ${slOn ? "on" : ""}" type="button" data-sku="${escapeHtml(r.sku)}">${IC.star} ${slOn ? "Tracked" : "Track price"}</button>
           <button class="btn ghost" type="button" data-cmp="${escapeHtml(r.id)}">${selected.has(r.id) ? "✓ In compare" : "+ Compare"}</button>
-          <button class="btn ghost" type="button" onclick="copyDetailLink('${escapeHtml(r.id)}')">${IC.copy} Copy link</button>
+          <button class="btn ghost" type="button" data-copylink="${escapeHtml(r.id)}">${IC.copy} Copy link</button>
         </div>
       </div>
     </div>
@@ -4185,6 +4229,9 @@ function renderDetail(id) {
     </div></div>` : ""}`;
   body.querySelectorAll(".star").forEach(b => { b.onclick = () => { toggleShortlist(r.sku, r.store); renderDetail(r.id); }; });
   body.querySelectorAll("[data-cmp]").forEach(b => { b.onclick = () => { toggleCompare(r.id, !selected.has(r.id)); renderDetail(r.id); }; });
+  // data-attribute wiring (never inline onclick): HTML-escaping is the wrong
+  // layer for a JS-string context — entities decode before JS parses.
+  body.querySelectorAll("[data-copylink]").forEach(b => { b.onclick = () => copyDetailLink(b.dataset.copylink); });
   wireHistCharts(body);
   if (bar) {
     if (best && best.in_stock) {
@@ -4218,7 +4265,7 @@ function renderTray() {
   tray.classList.toggle("on", selected.size > 0);
   $("#trayMini").innerHTML = [...selected].map(id => {
     const r = DATA.find(x => x.id === id);
-    return `<span class="m">${escapeHtml((r?.brand||"")+" "+(r?.name||"").slice(0,26))}… <button data-id="${id}">✕</button></span>`;
+    return `<span class="m">${escapeHtml((r?.brand||"")+" "+(r?.name||"").slice(0,26))}… <button data-id="${escapeHtml(id)}">✕</button></span>`;
   }).join("");
   $("#trayMini").querySelectorAll("button").forEach(b => b.onclick = () => toggleCompare(b.dataset.id, false));
   $("#btnCompare").disabled = selected.size < 2;
@@ -4232,44 +4279,44 @@ function openCompare() {
   const rows = [...selected].map(id => DATA.find(x => x.id === id)).filter(Boolean);
   if (rows.length < 2) return;
   $("#cmpHead").innerHTML = rows.map(r => `
-    <div class="h"><img src="${escapeHtml(r.image||"")}" onerror="this.style.visibility='hidden'">
+    <div class="h"><img src="${escapeHtml(safeImgSrc(r.image || ""))}" onerror="this.style.visibility='hidden'">
       <div class="n" title="${escapeHtml(r.name||"")}">${escapeHtml(r.short_name || r.name || "")}</div>
       <div style="color:var(--muted);font-size:12px;margin-top:4px"><span class="badge store ${storeSlug(r.store)}">${storeLogo(r.store)}</span> · ${fmt(r.price)}${localPrice(r) ? ` <span style="opacity:.7">(${escapeHtml(localPrice(r))})</span>` : ""}</div></div>`).join("");
   const defs = [
     ["Price", r => r.price, v => fmt(v), "min"],
     ["Local price", r => localPrice(r), v => escapeHtml(v || "–"), null],
-    ["Availability", r => r.deleted ? "Deleted" : r.delisted ? "Delisted" : (r.in_stock ? "In stock" : "Out of stock"), v => v, null],
-    ["Stock detail", r => r.stock_note, v => v, null],
+    ["Availability", r => r.deleted ? "Deleted" : r.delisted ? "Delisted" : (r.in_stock ? "In stock" : "Out of stock"), v => escapeHtml(v), null],
+    ["Stock detail", r => r.stock_note, v => escapeHtml(v || "–"), null],
     ["Model code", r => r.model_code, v => escapeHtml(v || "–"), null],
     ["Color", r => r.color, v => escapeHtml(v || "–"), null],
     ["First seen", r => r.first_seen, v => escapeHtml(v || "–"), null],
-    ["Performance", r => r.perf_score, v => v, "max"],
+    ["Performance", r => r.perf_score, v => escapeHtml(v), "max"],
     ["Workstation benchmark", r => r.ws_score, v => v != null ? Number(v).toFixed(1) : "–", "max"],
     ["Gaming FPS", r => r.game_score, v => v != null ? Number(v).toFixed(1) : "–", "max"],
-    ["Value score", r => r.value_score, v => v, "max"],
+    ["Value score", r => r.value_score, v => escapeHtml(v), "max"],
     ["Gaming value (FPS/💰)", r => r.game_value, v => v != null ? Number(v).toFixed(2) : "–", "max"],
     ["CPU", r => r.cpu?.text, v => escapeHtml(v||"–"), null],
     ["CPU family", r => r.cpu?.family, v => escapeHtml(v||"–"), null],
-    ["CPU score", r => r.cpu?.score, v => v, "max"],
-    ["RAM", r => r.ram ? r.ram+" GB"+(r.ram_type?" "+r.ram_type:"") : null, v => v, null],
-    ["RAM (GB)", r => r.ram, v => v, "max"],
-    ["RAM slots", r => r.ram_slots == null ? null : (r.ram_slots === 0 ? "soldered" : r.ram_slots + " SO-DIMM"), v => v, null],
-    ["RAM maximum", r => r.ram_max_gb, v => v ? v + " GB" : null, "max"],
+    ["CPU score", r => r.cpu?.score, v => escapeHtml(v), "max"],
+    ["RAM", r => r.ram ? r.ram+" GB"+(r.ram_type?" "+r.ram_type:"") : null, v => escapeHtml(v), null],
+    ["RAM (GB)", r => r.ram, v => escapeHtml(v), "max"],
+    ["RAM slots", r => r.ram_slots == null ? null : (r.ram_slots === 0 ? "soldered" : r.ram_slots + " SO-DIMM"), v => escapeHtml(v), null],
+    ["RAM maximum", r => r.ram_max_gb, v => (v ? escapeHtml(v + " GB") : null), "max"],
     ["Upgrade options", r => r.ram_note ? `${ramReliable(r) ? "✔" : "~"} ${r.ram_note}` : null,
       v => escapeHtml(v || "–"), null],
     ["RAM source", r => r.ram_source && (r.ram_source === "verified" ? "manufacturer spec sheet"
         : r.ram_source === "documented" ? "Pricing Ladder research" : "class estimate"),
       v => escapeHtml(v || "–"), null],
-    ["Storage", r => r.storage ? (r.storage>=1024?(r.storage/1024)+" TB":r.storage+" GB")+" "+(r.storage_type||"") : null, v => v, null],
+    ["Storage", r => r.storage ? (r.storage>=1024?(r.storage/1024)+" TB":r.storage+" GB")+" "+(r.storage_type||"") : null, v => escapeHtml(v), null],
     ["GPU", r => r.gpu?.text, v => escapeHtml(v||"–"), null],
-    ["GPU class", r => r.gpu?.class, v => v, null],
-    ["GPU score", r => r.gpu?.score, v => v, "max"],
-    ["VRAM (GB)", r => r.gpu?.vram, v => v, "max"],
-    ["Screen", r => r.screen?.inches ? r.screen.inches+'"' : null, v => v, null],
-    ["Resolution", r => r.screen?.res, v => v, null],
-    ["Panel", r => r.screen?.panel, v => v, null],
-    ["Refresh", r => r.screen?.hz ? r.screen.hz+" Hz" : null, v => v, "max"],
-    ["Touch", r => r.screen?.touch ? "Yes" : "No", v => v, null],
+    ["GPU class", r => r.gpu?.class, v => escapeHtml(v), null],
+    ["GPU score", r => r.gpu?.score, v => escapeHtml(v), "max"],
+    ["VRAM (GB)", r => r.gpu?.vram, v => escapeHtml(v), "max"],
+    ["Screen", r => r.screen?.inches ? r.screen.inches+'"' : null, v => escapeHtml(v), null],
+    ["Resolution", r => r.screen?.res, v => escapeHtml(v), null],
+    ["Panel", r => r.screen?.panel, v => escapeHtml(v), null],
+    ["Refresh", r => r.screen?.hz ? r.screen.hz+" Hz" : null, v => escapeHtml(v), "max"],
+    ["Touch", r => r.screen?.touch ? "Yes" : "No", v => escapeHtml(v), null],
     ["Battery", r => r.battery_label, v => escapeHtml(v || "–"), null],
     ["Charging", r => r.charging_detail, v => escapeHtml(v || "–"), null],
     ["Keyboard", r => r.keyboard_detail || (r.keyboard_backlit === true ? "Backlit" : r.keyboard_backlit === false ? "Non-backlit" : null), v => escapeHtml(v || "–"), null],
@@ -4280,13 +4327,13 @@ function openCompare() {
     ["Display notes", r => r.display_note, v => escapeHtml(v||"–"), null],
     ["Build rating", r => r.build_score, v => Number(v).toFixed(1), "max"],
     ["Materials", r => r.build_material, v => escapeHtml(v||"–"), null],
-    ["OS", r => r.os, v => v, null],
-    ["Weight", r => r.weight_kg ? r.weight_kg+" kg" : null, v => v, "min"],
-    ["Warranty", r => r.warranty_years ? r.warranty_years+" years" : null, v => v, "max"],
-    ["Marketplace", r => r.marketplace ? "Yes" : "No", v => v, null],
-    ["Store", r => r.store, v => v, null],
+    ["OS", r => r.os, v => escapeHtml(v), null],
+    ["Weight", r => r.weight_kg ? r.weight_kg+" kg" : null, v => escapeHtml(v), "min"],
+    ["Warranty", r => r.warranty_years ? r.warranty_years+" years" : null, v => escapeHtml(v), "max"],
+    ["Marketplace", r => r.marketplace ? "Yes" : "No", v => escapeHtml(v), null],
+    ["Store", r => r.store, v => escapeHtml(v), null],
     ["Seller", r => r.seller || null, v => escapeHtml(v || "–"), null],
-    ["Seller rating", r => r.seller_positive_pct != null ? `${r.seller_positive_pct}% positive · ${r.seller_reviews || 0} ratings` : null, v => v, null],
+    ["Seller rating", r => r.seller_positive_pct != null ? `${r.seller_positive_pct}% positive · ${r.seller_reviews || 0} ratings` : null, v => escapeHtml(v), null],
     ["Seller risk", r => r.seller_note ? `${r.seller_note} — ≈${r.seller_issue_pct}% estimated order issue rate (1 in ${r.seller_issue_pct > 0 ? Math.round(100 / r.seller_issue_pct) : "—"}), from ${100 - (r.seller_positive_pct || 0)}% negative reviews*` : null, v => escapeHtml(v || "–"), null],
     ["Other store", r => (r.offers || []).filter(o => o.store !== r.store)
         .map(o => `${o.store}: SAR ${num(o.price)}${o.in_stock ? "" : " (out of stock)"}`).join(" · ") || null,
@@ -4750,9 +4797,13 @@ function chartTipShow(ev, p, tipId, bodyId, extraOf) {
   const tip = $(tipId);
   if (!p) { tip.hidden = true; return; }
   const r = p.rec;
+  const stack = (p.stack && p.stack.length > 1) ? p.stack : null;
   tip.innerHTML = `<div class="t">${escapeHtml((r.brand ? r.brand + " " : "") + (r.short_name || r.name || ""))}</div>`
     + `<div class="s">${escapeHtml(chartStore(r))} · ${r.ram != null ? r.ram + "GB" : "?"} RAM · ${escapeHtml((r.cpu && r.cpu.text) || "?")} · ${escapeHtml((r.gpu && r.gpu.text) || "iGPU")}</div>`
     + `<div class="p">${fmt(r.price)} · overall ${r.overall_score != null ? r.overall_score.toFixed(1) : "–"} · perf ${r.perf_score != null ? r.perf_score.toFixed(1) : "–"} · WS ${r.ws_score != null ? r.ws_score.toFixed(1) : "–"} · game ${r.game_score != null ? r.game_score.toFixed(1) : "–"} (💰 ${r.game_value != null ? r.game_value.toFixed(1) : "–"}) · value ${r.value_score != null ? r.value_score.toFixed(1) : "–"}</div>`
+    + (stack ? `<div class="s" style="margin-top:4px;font-weight:700">×${stack.length} share this spot:</div>`
+      + stack.slice(0, 5).map(m => `<div class="s">• ${escapeHtml((m.rec.brand ? m.rec.brand + " " : "") + (m.rec.short_name || m.rec.name || ""))} · ${escapeHtml(chartStore(m.rec))} · ${fmt(m.rec.price)}</div>`).join("")
+      + (stack.length > 5 ? `<div class="s">…+${stack.length - 5} more</div>` : "") : "")
     + (extraOf ? extraOf(p) : "")
     + `<div class="s">${TOUCH_UI ? "tap again to filter the list to this listing" : "click to filter the list to this listing"}</div>`;
   tip.hidden = false;
@@ -4822,23 +4873,22 @@ function wireChartEvents(svgId, tipId, bodyId, byId, extraOf) {
     chartTipShow(ev, c ? byId.get(c.dataset.id) : null, tipId, bodyId, extraOf);
   };
   svg.onmouseleave = () => { $(tipId).hidden = true; svg._tipFor = null; };
-  // click a node -> narrow the list to that listing (its SKU is unique),
-  // instead of scrolling/flashing a card somewhere in the grid
+  // click a node -> pin the listing(s) as tags and narrow the list to them.
+  // A stacked (×n) node pins every member — free-text search can't express
+  // that (its words are AND'd, and no listing contains two SKUs).
   svg.onclick = ev => {
     const c = ev.target.closest && ev.target.closest("circle.pt");
     if (!c) { svg._tipFor = null; return; }
     const p = byId.get(c.dataset.id);
     if (!p) return;
-    if (TOUCH_UI && svg._tipFor !== c.dataset.id) {
-      svg._tipFor = c.dataset.id;
-      chartTipShow(ev, p, tipId, bodyId, extraOf);
-      return;
-    }
     svg._tipFor = c.dataset.id;
+    const members = (p.stack && p.stack.length > 1) ? p.stack : [p];
+    state.pins.clear();
+    members.forEach(m => state.pins.add(m.rec.merged_into || m.rec.id));
+    state.q = "";
     const inp = $("#f-q");
-    inp.value = p.rec.sku || p.rec.name || "";
-    inp.dispatchEvent(new Event("input", { bubbles: true }));
-    try { inp.focus({ preventScroll: true }); } catch (e) { /* older browsers */ }
+    if (inp) inp.value = "";
+    render();
   };
 }
 
@@ -5023,14 +5073,55 @@ function renderChart(rows) {
     // disagrees with the curve). Orange = an elbow of the curve on screen.
     const kneeSet = metric === "overall" ? frontierKneeModel(front.map(p => p.rec), "overall_score").knees
       : metric === "perf" ? frontierKneeModel(front.map(p => p.rec), "perf_score").knees : null;
-    dots = pts.map(p => {
-      const r = p.rec;
-      const inFront = frontSet.has(r.id);
+    // Stacks: frontier/knee dots sharing one pixel keep their EXACT anchor —
+    // spreading them fakes a score gap. Colliding members render concentrically
+    // (bottom halo + ×n badge); the tooltip lists every member.
+    let halos = "", badges = "";
+    {
+      const imp = pts.filter(p => frontSet.has(p.rec.id) || (kneeSet && kneeSet.has(p.rec.id)));
+      const ax = imp.map(p => xs(p.x)), ay = imp.map(p => ys(p.y));
+      const R = 14, visited = new Array(imp.length).fill(false);
+      imp.forEach(p => { p.stack = [p]; });
+      for (let i = 0; i < imp.length; i++) {
+        if (visited[i]) continue;
+        const group = [i];
+        visited[i] = true;
+        let grew = true;
+        while (grew) {
+          grew = false;
+          for (let j = 0; j < imp.length; j++) {
+            if (visited[j]) continue;
+            if (group.some(k => Math.hypot(ax[k] - ax[j], ay[k] - ay[j]) < R)) {
+              group.push(j); visited[j] = true; grew = true;
+            }
+          }
+        }
+        if (group.length > 1) {
+          const members = group.map(k => imp[k]);
+          members.forEach(m => { m.stack = members; });
+          const m0 = members[0];
+          const inScope = !hiddenValue.has(frontSet.has(m0.rec.id)
+            ? (mode === "pareto" ? "frontier" : "store:" + chartStore(m0.rec))
+            : "rest");
+          if (inScope) {
+            const cx = ax[group[0]], cy = ay[group[0]];
+            const hasKnee = members.some(m => kneeSet && kneeSet.has(m.rec.id));
+            halos += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="8" fill="none"`
+              + ` stroke="${hasKnee ? "#f4a63c" : "var(--accent)"}" stroke-width="1.6" opacity="0.85" pointer-events="none"/>`;
+            badges += `<text x="${(cx + 11).toFixed(1)}" y="${(cy - 9).toFixed(1)}" font-size="11" font-weight="800"`
+              + ` fill="var(--text-bright)" stroke="var(--card)" stroke-width="3" paint-order="stroke" pointer-events="none">×${members.length}</text>`;
+          }
+        }
+      }
+    }
+    const dotFor = (p, r) => {
+      const rec = p.rec;
+      const inFront = frontSet.has(rec.id);
       // hide key follows the legend: frontier/rest in Focus mode, store or
       // GPU class in color modes — each mode filters only its own legend
       const hideKey = mode === "pareto" ? (inFront ? "frontier" : "rest")
-        : mode === "gpu" ? "gpu:" + ((r.gpu && r.gpu.class) || "integrated")
-        : "store:" + chartStore(r);
+        : mode === "gpu" ? "gpu:" + ((rec.gpu && rec.gpu.class) || "integrated")
+        : "store:" + chartStore(rec);
       const ghosted = hiddenValue.has(hideKey);
       const onFront = inFront && !ghosted;
       let cls, style = "";
@@ -5039,13 +5130,18 @@ function renderChart(rows) {
       else {
         cls = "pt" + (onFront ? " front" : "");
         style = onFront
-          ? ` style="fill:${chartColorFor(r, mode)};stroke:var(--accent);stroke-width:1.6"`
-          : ` style="fill:${chartColorFor(r, mode)}"`;
+          ? ` style="fill:${chartColorFor(rec, mode)};stroke:var(--accent);stroke-width:1.6"`
+          : ` style="fill:${chartColorFor(rec, mode)}"`;
       }
-      if (!ghosted && kneeSet && kneeSet.has(r.id)) cls += " knee";
-      return `<circle class="${cls}" data-id="${escapeHtml(r.id)}"`
-        + ` cx="${xs(p.x).toFixed(1)}" cy="${ys(p.y).toFixed(1)}" r="${onFront ? 4.8 : 4.2}"${style}></circle>`;
-    }).join("");
+      if (!ghosted && kneeSet && kneeSet.has(rec.id)) cls += " knee";
+      return `<circle class="${cls}" data-id="${escapeHtml(rec.id)}"`
+        + ` cx="${xs(p.x).toFixed(1)}" cy="${ys(p.y).toFixed(1)}" r="${r != null ? r : (onFront ? 4.8 : 4.2)}"${style}></circle>`;
+    };
+    // Stack bottoms first (wider halo of the hidden member), then everything
+    // else on top — all at exact anchors, so no fake higher/lower reading.
+    dots = pts.filter(p => p.stack && p.stack.length > 1 && p.stack[0] === p).map(p => dotFor(p, 5.8)).join("")
+      + pts.filter(p => !(p.stack && p.stack.length > 1 && p.stack[0] === p)).map(p => dotFor(p, null)).join("");
+    dots = halos + dots + badges;
     sub.textContent = mirror
       ? `${pts.length} in view · frontier = beats every pricier machine`
       : `${pts.length} in view · frontier = best ${yName} at or below each price`;
@@ -5993,22 +6089,41 @@ function renderKneeCard(item, category) {
       </div>
       ${noteHtml}
       <div class="knee-card-actions">
-        <button class="knee-card-btn primary" type="button" onclick="jumpToCatalogSKU('${escapeHtml(r.sku || r.id)}')">🔍 View in Catalog</button>
+        <button class="knee-card-btn primary" type="button" data-jump-sku="${escapeHtml(r.sku || r.id)}">🔍 View in Catalog</button>
         ${r.url ? `<a class="knee-card-btn" href="${escapeHtml(affUrl(r.store, r.url))}" target="_blank" rel="${affRel(r.store)}">Store Link ↗</a>` : ""}
       </div>
     </div>
   `;
 }
 
-function jumpToCatalogSKU(sku) {
-  if (!sku) return;
+// Pin raw listing keys (ids or SKUs) as catalog tags, clearing everything
+// else first. A stacked node passes every member, so one click pins both.
+function pinListings(keys) {
   reset();
-  state.q = String(sku).toLowerCase();
-  if ($("#f-q")) $("#f-q").value = sku;
+  (keys || []).forEach(key => {
+    const k = String(key);
+    const hit = DATA_ALL.find(x => x.id === k || x.sku === k)
+      || DATA_ALL.find(x => (x.sku || "").toLowerCase() === k.toLowerCase());
+    if (hit) state.pins.add(hit.merged_into || hit.id);
+  });
+  if (!state.pins.size && keys && keys.length) {
+    state.q = String(keys[0]).toLowerCase();
+    if ($("#f-q")) $("#f-q").value = keys[0];
+  }
   switchView("catalog");
   scheduleRender();
 }
+function jumpToCatalogSKU(sku) {
+  if (!sku) return;
+  pinListings([sku]);
+}
 window.jumpToCatalogSKU = jumpToCatalogSKU;
+// Delegated wiring for knee-card buttons (never inline onclick: HTML-escaping
+// is the wrong layer for a JS-string context).
+document.addEventListener("click", e => {
+  const b = e.target && e.target.closest ? e.target.closest("[data-jump-sku]") : null;
+  if (b) jumpToCatalogSKU(b.dataset.jumpSku);
+});
 
 
 function renderKneesChart(data) {
@@ -6093,14 +6208,52 @@ function renderKneesChart(data) {
     html += `<path d="${dActive}" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
   }
 
-  // Nodes along the frontier
-  activeFront.forEach(r => {
-    const x = xs(r.price);
+  // Stacks keep their EXACT anchor — spreading fakes a score gap. Colliding
+  // nodes render concentrically (halo + ×n badge); the tooltip lists members.
+  const nodePos = activeFront.map(r => {
     const score = r[yKey] || r.overall_score || 0;
-    const y = ys(score);
+    const ax = xs(r.price), ay = ys(score);
+    return { r, ax, ay };
+  });
+  const stackOf = new Map();
+  {
+    const R = 18;
+    const visited = new Array(nodePos.length).fill(false);
+    for (let i = 0; i < nodePos.length; i++) {
+      if (visited[i]) continue;
+      const group = [i];
+      visited[i] = true;
+      let grew = true;
+      while (grew) {
+        grew = false;
+        for (let j = 0; j < nodePos.length; j++) {
+          if (visited[j]) continue;
+          if (group.some(k => Math.hypot(nodePos[k].ax - nodePos[j].ax, nodePos[k].ay - nodePos[j].ay) < R)) {
+            group.push(j); visited[j] = true; grew = true;
+          }
+        }
+      }
+      const members = group.map(k => nodePos[k].r);
+      group.forEach(k => stackOf.set(nodePos[k].r.id, members));
+      if (group.length > 1) {
+        const cx = nodePos[group[0]].ax, cy = nodePos[group[0]].ay;
+        const hasKnee = group.some(k => kneeSet && kneeSet.has(nodePos[k].r.id));
+        html += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="11" fill="none"`
+          + ` stroke="${hasKnee ? "#f59e0b" : "var(--accent)"}" stroke-width="1.5" opacity="0.7" pointer-events="none"/>`;
+        html += `<text x="${(cx + 13).toFixed(1)}" y="${(cy - 10).toFixed(1)}" font-size="11" font-weight="800"`
+          + ` fill="var(--text-bright)" stroke="var(--bg)" stroke-width="3" paint-order="stroke" pointer-events="none">×${group.length}</text>`;
+      }
+    }
+  }
+  // Knees last so the pulse ring never hides under a frontier dot.
+  nodePos.sort((a, b) => ((kneeSet && kneeSet.has(a.r.id) ? 1 : 0) - (kneeSet && kneeSet.has(b.r.id) ? 1 : 0)));
+  nodePos.forEach(({ r, ax, ay }) => {
+    const x = ax;
+    const y = ay;
     const isKnee = kneeSet ? kneeSet.has(r.id) : false;
+    const stack = stackOf.get(r.id) || [r];
 
-    html += `<g class="knee-node" data-id="${escapeHtml(r.id)}" data-knee="${isKnee ? '1' : '0'}">`;
+    html += `<g class="knee-node" data-id="${escapeHtml(r.id)}" data-knee="${isKnee ? '1' : '0'}"${stack.length > 1 ? ` data-stack="${escapeHtml(stack.map(m => m.id).join(","))}"` : ""}>`;
     // Stable transparent hit area (28px diameter) so mouse never slips off small dots
     html += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="14" fill="transparent" class="knee-hit" />`;
     if (isKnee) {
@@ -6126,6 +6279,8 @@ function renderKneesChart(data) {
     const isKnee = node.dataset.knee === "1";
     const r = activeFront.find(x => x.id === id);
     if (!r || !tip) return;
+    const stackIds = (node.dataset.stack || "").split(",").filter(Boolean);
+    const stack = stackIds.length > 1 ? stackIds.map(sid => activeFront.find(x => x.id === sid)).filter(Boolean) : null;
 
     tip.innerHTML = `
       <div style="font-weight:700;font-size:12.5px;color:var(--text-bright);margin-bottom:3px">${escapeHtml(r.short_name || r.name)}</div>
@@ -6134,6 +6289,8 @@ function renderKneesChart(data) {
         <span>Overall: <b>${r.overall_score ? r.overall_score.toFixed(1) : "–"}</b></span>
         <span>Perf: <b>${r.perf_score ? r.perf_score.toFixed(1) : "–"}</b></span>
       </div>
+      ${stack ? `<div style="margin-top:5px;font-size:11px;color:var(--text-bright);font-weight:700;font-family:var(--sans)">×${stack.length} share this spot:</div>`
+        + stack.slice(0, 5).map(m => `<div style="font-size:11px;color:var(--text);font-family:var(--sans)">• ${escapeHtml(m.short_name || m.name)} · ${escapeHtml(chartStore(m))} · ${fmt(m.price)}</div>`).join("") : ""}
       ${isKnee ? `<div style="margin-top:5px;font-size:11px;color:#f59e0b;font-weight:700;font-family:var(--sans)">⚡ Pareto Knee Inflection Point</div>` : `<div style="margin-top:5px;font-size:11px;color:var(--accent);font-family:var(--sans)">🎯 Pareto Frontier Model</div>`}
       <div style="margin-top:4px;font-size:11px;color:var(--muted);font-family:var(--sans)">click to view in catalog</div>
     `;
@@ -6159,8 +6316,12 @@ function renderKneesChart(data) {
   svgEl.onclick = ev => {
     const node = ev.target.closest && ev.target.closest(".knee-node");
     if (!node) return;
-    const r = activeFront.find(x => x.id === node.dataset.id);
-    if (r) jumpToCatalogSKU(r.sku || r.id);
+    const ids = (node.dataset.stack || "").split(",").filter(Boolean);
+    if (ids.length > 1) pinListings(ids);
+    else {
+      const r = activeFront.find(x => x.id === node.dataset.id);
+      if (r) jumpToCatalogSKU(r.sku || r.id);
+    }
   };
 }
 
