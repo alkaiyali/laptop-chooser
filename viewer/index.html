@@ -3040,7 +3040,7 @@ const VALUE_P95 = VALUES[Math.floor(VALUES.length * 0.95)] || 1;
 const state = {
   q: "", store: new Set(), brand: new Set(), cpuBrand: new Set(),
   ramMin: 16, storageMin: 0, priceMin: null, priceMax: null, minPerf: 0,
-  gpu: "any", panel: "any", minDisplay: 0, minBuild: 0, touch: false, os: new Set(), weightMax: null,
+  gpu: "any", panel: "any", minDisplay: 0, minBuild: 0, touch: false, hinge360: false, os: new Set(), weightMax: null,
   tags: new Set(), pins: new Set(), hideMarketplace: false, excludeOOS: true, showDupes: false,
   hideWeakDgpu: true,
   noTn: false, requireUsbc: false, requireBacklit: false, minBatt: 0,
@@ -3205,6 +3205,7 @@ function buildSidebar() {
         <option value="9">Display 9+ /10</option>
       </select>
       <label class="chk" style="margin-top:7px"><input type="checkbox" id="f-touch"> Touchscreen</label>
+      <label class="chk" style="margin-top:7px"><input type="checkbox" id="f-hinge"> 360° hinge</label>
     </div>
     <div class="fgroup">
       <div class="flabel"><span>Build &amp; weight</span></div>
@@ -3301,6 +3302,7 @@ function buildSidebar() {
   $("#f-disp").onchange = e => { state.minDisplay = +e.target.value; render(); };
   $("#f-build").onchange = e => { state.minBuild = +e.target.value; render(); };
   $("#f-touch").onchange = e => { state.touch = e.target.checked; render(); };
+  $("#f-hinge").onchange = e => { state.hinge360 = e.target.checked; render(); };
   OS_OPTS.forEach(([k, label]) => $("#f-os").append(chip(label, null, false, () => toggleSet(state.os, k))));
   $("#f-mp").onchange = e => { state.hideMarketplace = e.target.checked; render(); };
   $("#f-vram").onchange = e => { state.hideWeakDgpu = e.target.checked; render(); };
@@ -3320,7 +3322,7 @@ function toggleSet(set, v) { set.has(v) ? set.delete(v) : set.add(v); render(); 
 function reset() {
   state.q = ""; ["store","brand","cpuBrand","tags","pins","os"].forEach(k => state[k].clear());
   Object.assign(state, { ramMin:16, storageMin:0, priceMin:null, priceMax:null, minPerf:0,
-    gpu:"any", panel:"any", minDisplay:0, minBuild:0, touch:false, weightMax:null, hideMarketplace:false,
+    gpu:"any", panel:"any", minDisplay:0, minBuild:0, touch:false, hinge360:false, weightMax:null, hideMarketplace:false,
     excludeOOS:true, showDupes:false, hideWeakDgpu:true,
     noTn:false, requireUsbc:false, requireBacklit:false, minBatt:0,
     ramUp:"off", sort:"value", pareto:"all", xLog:true });
@@ -3370,6 +3372,7 @@ function matches(r) {
   if (state.priceMax != null && r.price > state.priceMax) return false;
   if (state.weightMax != null && (!r.weight_kg || r.weight_kg > state.weightMax)) return false;
   if (state.touch && !r.screen?.touch) return false;
+  if (state.hinge360 && !r.hinge_360) return false;
   if (state.panel === "oled" && !["OLED","Mini-LED"].includes(r.screen?.panel)) return false;
   if (state.panel === "ips" && !["IPS","Retina","PixelSense","LCD","TN","VA"].includes(r.screen?.panel)) return false;
   if (state.minDisplay && (r.display_score || 0) < state.minDisplay) return false;
@@ -3430,7 +3433,7 @@ function render() {
   $("#f-gpu").value = state.gpu; $("#f-panel").value = state.panel;
   document.querySelectorAll("#f-os .chip").forEach((el,i) => el.classList.toggle("on", state.os.has(OS_OPTS[i][0])));
   $("#f-disp").value = state.minDisplay; $("#f-build").value = state.minBuild;
-  $("#f-touch").checked = state.touch; $("#f-mp").checked = state.hideMarketplace;
+  $("#f-touch").checked = state.touch; $("#f-hinge").checked = !!state.hinge360; $("#f-mp").checked = state.hideMarketplace;
   $("#f-vram").checked = state.hideWeakDgpu;
   $("#f-oos").checked = state.excludeOOS;
   $("#f-ramup").value = state.ramUp;
@@ -3546,6 +3549,7 @@ function renderActiveFilters() {
   if (state.minDisplay) add("display ≥ "+state.minDisplay, () => state.minDisplay=0);
   if (state.minBuild) add("build ≥ "+state.minBuild, () => state.minBuild=0);
   if (state.touch) add("Touch", () => state.touch=false);
+  if (state.hinge360) add("360° hinge", () => state.hinge360=false);
   if (state.noTn) add("no TN / budget LCD", () => state.noTn = false);
   if (state.requireUsbc) add("USB-C charging required", () => state.requireUsbc = false);
   if (state.requireBacklit) add("backlit keyboard required", () => state.requireBacklit = false);
@@ -4317,6 +4321,7 @@ function openCompare() {
     ["Panel", r => r.screen?.panel, v => escapeHtml(v), null],
     ["Refresh", r => r.screen?.hz ? r.screen.hz+" Hz" : null, v => escapeHtml(v), "max"],
     ["Touch", r => r.screen?.touch ? "Yes" : "No", v => escapeHtml(v), null],
+    ["360° hinge", r => r.hinge_360 ? "Yes" : "No", v => escapeHtml(v), null],
     ["Battery", r => r.battery_label, v => escapeHtml(v || "–"), null],
     ["Charging", r => r.charging_detail, v => escapeHtml(v || "–"), null],
     ["Keyboard", r => r.keyboard_detail || (r.keyboard_backlit === true ? "Backlit" : r.keyboard_backlit === false ? "Non-backlit" : null), v => escapeHtml(v || "–"), null],
@@ -6963,6 +6968,8 @@ boot();
     "SCREEN": "الشاشة",
     "OLED": "OLED",
     "Touch": "لمس",
+    "360° hinge": "مفصلة 360°",
+    "Touchscreen": "شاشة لمس",
     "WEIGHT": "الوزن",
     "OS": "نظام التشغيل",
     "Windows": "ويندوز",

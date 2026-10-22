@@ -571,6 +571,8 @@ def compute_quality_score(rec: dict) -> float:
     # not sink a machine. Nearly every modern laptop is backlit, so a confirmed
     # missing backlight costs more than a confirmed one earns.
     kbd = rec.get("keyboard_backlit")
+    # 360° hinge: small bonus only when confirmed; clamshells are not penalised
+    extra += 1.0 if rec.get("hinge_360") else 0.0
     extra += 0.5 if kbd is True else (-1.0 if kbd is False else 0.0)
     usbc = rec.get("usbc_charging")
     extra += 0.5 if usbc is True else (-0.5 if usbc is False else 0.0)
@@ -2354,6 +2356,23 @@ def detect_charging(rec: dict) -> tuple[str, bool | None, str]:
     return "unknown", None, "Charging type unconfirmed"
 
 
+_HINGE_360_RE = re.compile(
+    r"360\s*°?\s*(?:degree\s*)?(?:hinge|flip|rotat\w*|convertible|foldable)"
+    r"|\bx360\b|\bflip\b|\bconvertible\b|\b2[- ]in[- ]1\b"
+    r"|\byoga\s*(?:[679]\b|\d{2}\b)|\bthinkpad\s+(?:x1\s+)?yoga\b|\bideapad\s+flex\b"
+    r"|\bspin\s*\d\b")
+
+
+def detect_hinge_360(rec: dict) -> bool:
+    """True when the listing indicates a 360-degree convertible hinge (flip/fold-back 2-in-1)."""
+    specs = rec.get("specs") or {}
+    spec_text = " ".join(f"{k} {v}" for k, v in specs.items())
+    txt = f"{rec.get('name') or ''} {rec.get('model') or ''} {rec.get('short_description') or ''} {spec_text}".lower()
+    if re.search(r"detachable|clamshell|\bsurface\s+pro\b", (rec.get("name") or "").lower()) or "detachable" in txt:
+        return False
+    return bool(_HINGE_360_RE.search(txt))
+
+
 def detect_keyboard(rec: dict) -> tuple[bool | None, str | None]:
     """Return (keyboard_backlit, keyboard_detail)."""
     brand = (rec.get("brand") or "").lower()
@@ -2476,6 +2495,7 @@ def apply_hardware_specs_and_warnings(records: list[dict]) -> dict:
         elif c_type == "barrel":
             stats["barrel"] += 1
 
+        rec["hinge_360"] = detect_hinge_360(rec)
         kbd_backlit, kbd_detail = detect_keyboard(rec)
         rec["keyboard_backlit"] = kbd_backlit
         rec["keyboard_detail"] = kbd_detail
