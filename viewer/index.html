@@ -4805,9 +4805,9 @@ function chartTipShow(ev, p, tipId, bodyId, extraOf) {
   const stack = (p.stack && p.stack.length > 1) ? p.stack : null;
   tip.innerHTML = `<div class="t">${escapeHtml((r.brand ? r.brand + " " : "") + (r.short_name || r.name || ""))}</div>`
     + `<div class="s">${escapeHtml(chartStore(r))} · ${r.ram != null ? r.ram + "GB" : "?"} RAM · ${escapeHtml((r.cpu && r.cpu.text) || "?")} · ${escapeHtml((r.gpu && r.gpu.text) || "iGPU")}</div>`
-    + `<div class="p">${fmt(r.price)} · overall ${r.overall_score != null ? r.overall_score.toFixed(1) : "–"} · perf ${r.perf_score != null ? r.perf_score.toFixed(1) : "–"} · WS ${r.ws_score != null ? r.ws_score.toFixed(1) : "–"} · game ${r.game_score != null ? r.game_score.toFixed(1) : "–"} (💰 ${r.game_value != null ? r.game_value.toFixed(1) : "–"}) · value ${r.value_score != null ? r.value_score.toFixed(1) : "–"}</div>`
+    + `<div class="p">${fmt(shownPriceOf(r))} · overall ${r.overall_score != null ? r.overall_score.toFixed(1) : "–"} · perf ${r.perf_score != null ? r.perf_score.toFixed(1) : "–"} · WS ${r.ws_score != null ? r.ws_score.toFixed(1) : "–"} · game ${r.game_score != null ? r.game_score.toFixed(1) : "–"} (💰 ${r.game_value != null ? r.game_value.toFixed(1) : "–"}) · value ${r.value_score != null ? r.value_score.toFixed(1) : "–"}</div>`
     + (stack ? `<div class="s" style="margin-top:4px;font-weight:700">×${stack.length} share this spot:</div>`
-      + stack.slice(0, 5).map(m => `<div class="s">• ${escapeHtml((m.rec.brand ? m.rec.brand + " " : "") + (m.rec.short_name || m.rec.name || ""))} · ${escapeHtml(chartStore(m.rec))} · ${fmt(m.rec.price)}</div>`).join("")
+      + stack.slice(0, 5).map(m => `<div class="s">• ${escapeHtml((m.rec.brand ? m.rec.brand + " " : "") + (m.rec.short_name || m.rec.name || ""))} · ${escapeHtml(chartStore(m.rec))} · ${fmt(shownPriceOf(m.rec))}</div>`).join("")
       + (stack.length > 5 ? `<div class="s">…+${stack.length - 5} more</div>` : "") : "")
     + (extraOf ? extraOf(p) : "")
     + `<div class="s">${TOUCH_UI ? "tap again to filter the list to this listing" : "click to filter the list to this listing"}</div>`;
@@ -4983,11 +4983,11 @@ function renderChart(rows) {
 
   const draw = pendingDraw.delete("value") ? " drawline" : "";
   const metric = state.chartY;
-  const yOf = r => metric === "perf" ? r.perf_score : metric === "overall" ? (r.overall_score ?? r.perf_score) : metric === "ws" ? r.ws_score : metric === "game" ? (r.game_value ?? r.game_score) : r.value_score;
+  const yOf = r => metric === "perf" ? r.perf_score : metric === "overall" ? (r.overall_score ?? r.perf_score) : metric === "ws" ? r.ws_score : metric === "game" ? (r.game_value ?? r.game_score) : shownValueOf(r);
   const yName = metric === "perf" ? "performance" : metric === "overall" ? "overall score" : metric === "ws" ? "workstation benchmark" : metric === "game" ? "gaming value (FPS/💰)" : "value";
   const pts = chartRows
     .filter(r => r.price != null && yOf(r) != null)
-    .map(r => ({ x: r.price, y: yOf(r), rec: r }));
+    .map(r => ({ x: shownPriceOf(r), y: yOf(r), rec: r }));
   const sub = $("#chartSub");
   if (!pts.length) {
     emptyChart("#chart", sub, "#chartLegend");
@@ -5209,10 +5209,10 @@ function renderWsChart(rows) {
 
   const maxWs = Math.max(...all.map(r => r.ws_score));
   const topRec = all.find(r => r.ws_score === maxWs);
-  const frontSummary = paretoFront(all.map(r => ({ x: r.price, y: r.ws_score, rec: r })), "ws");
+  const frontSummary = paretoFront(all.map(r => ({ x: shownPriceOf(r), y: r.ws_score, rec: r })), "ws");
   sub.textContent = `${maxWs.toFixed(1)} max workstation index (${(topRec ? (topRec.short_name || topRec.name) : "").slice(0, 30)}) · ${frontSummary.length} on workstation frontier · pure RAM+CPU+GPU`;
 
-  const pts = all.map(r => ({ x: r.price, y: r.ws_score, rec: r }));
+  const pts = all.map(r => ({ x: shownPriceOf(r), y: r.ws_score, rec: r }));
   const maxPrice = Math.max(...pts.map(p => p.x));
   const xMax = Math.min(25000, Math.max(2500, Math.ceil(maxPrice / 2500) * 2500));
   const yMax = 100;
@@ -5359,7 +5359,7 @@ function renderLiftChart(rows) {
   const yOf = r => metric === "perf" ? r.perf_score : metric === "ws" ? r.ws_score : (r.overall_score ?? r.perf_score);
   const yName = metric === "perf" ? "performance" : metric === "ws" ? "workstation" : "overall";
   const sub = $("#liftSub");
-  const pts = chartRows.filter(r => r.price != null && yOf(r) != null).map(r => ({ x: r.price, y: yOf(r), rec: r }));
+  const pts = chartRows.filter(r => r.price != null && yOf(r) != null).map(r => ({ x: shownPriceOf(r), y: yOf(r), rec: r }));
   if (pts.length < LIFT_MIN_N) { emptyChart("#liftChart", sub, "#liftLegend"); return; }
 
   const typicalAt = liftModel(pts);
@@ -5516,18 +5516,18 @@ function renderRamChart(rows) {
   all.forEach(r => {
     if (r.ram == null) return;
     const t = tierKey(r.ram);
-    if (byTier[t] == null || r.price < byTier[t].price) byTier[t] = r;
+    if (byTier[t] == null || shownPriceOf(r) < shownPriceOf(byTier[t])) byTier[t] = r;
   });
 
   // cheapest price per tier + what the memory costs per GB at that price
   sub.textContent = [16, 24, 32, 48, 64, 96].filter(t => byTier[t])
     .map(t => {
       const r = byTier[t];
-      const perGb = Math.round(r.price / r.ram);
-      return `${t}GB${t === 96 && hasOver96 ? "+" : ""} from ${Math.round(r.price).toLocaleString("en-US")} · ${perGb}/GB`;
+      const perGb = Math.round(shownPriceOf(r) / r.ram);
+      return `${t}GB${t === 96 && hasOver96 ? "+" : ""} from ${Math.round(shownPriceOf(r)).toLocaleString("en-US")} · ${perGb}/GB`;
     }).join(" · ") || `${all.length} in view`;
 
-  const pts = all.filter(r => r.ram != null).map(r => ({ x: r.price, y: r.ram, rec: r }));
+  const pts = all.filter(r => r.ram != null).map(r => ({ x: shownPriceOf(r), y: r.ram, rec: r }));
   const maxPrice = Math.max(...pts.map(p => p.x));
   const xMax = Math.min(25000, Math.max(2500, Math.ceil(maxPrice / 2500) * 2500));
   const rawMaxY = Math.max(...pts.map(p => p.y));
