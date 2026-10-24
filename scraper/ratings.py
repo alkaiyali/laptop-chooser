@@ -65,7 +65,7 @@ FAMILIES: list[tuple[str, float, str, str]] = [
     (r"thinkbook", 6.5, "aluminium lid, plastic base (ThinkBook class)", "business"),
     (r"yoga book", 9.5, "aluminium, dual screen (Yoga Book)", "premium"),
     (r"yoga slim", 8.5, "aluminium body (Yoga Slim class)", "premium"),
-    (r"yoga", 8.0, "aluminium body (Yoga class)", "premium"),
+    (r"yoga", 8.5, "aluminium body (Yoga class)", "premium"),
     (r"ideapad slim 5|ideapad pro", 8.0, "aluminium top and bottom (IdeaPad Slim 5/Pro class)", "mainstream"),
     (r"ideapad slim 3|ideapad slim 1|ideapad 1|ideapad 3", 5.6, "plastic body (IdeaPad Slim 3 class)", "budget"),
     (r"ideapad (flex|gaming|5)", 6.0, "plastic body (IdeaPad Flex/Gaming class)", "mainstream"),
@@ -83,7 +83,7 @@ FAMILIES: list[tuple[str, float, str, str]] = [
     (r"omnibook ?(x|ultra)", 8.5, "aluminium (OmniBook X/Ultra class)", "premium"),
     (r"omnibook ?5", 7.0, "aluminium/recycled metal lid + keyboard frame, plastic base (OmniBook 5 class)", "mainstream"),
     (r"omnibook", 6.5, "mixed plastic/metal (OmniBook class)", "mainstream"),
-    (r"envy", 8.0, "aluminium body (Envy class)", "premium"),
+    (r"envy", 8.5, "aluminium body (Envy class)", "premium"),
     (r"pavilion", 6.0, "plastic body (Pavilion class)", "mainstream"),
     (r"victus", 5.8, "plastic body (Victus class)", "gaming"),
     (r"omen", 8.0, "aluminium lid, plastic base (OMEN class)", "gaming"),
@@ -107,7 +107,7 @@ FAMILIES: list[tuple[str, float, str, str]] = [
     (r"dell g ?1[56]\b|\bg1[56] \d{4}\b", 6.5, "plastic body (Dell G class)", "gaming"),
     (r"dell", 5.8, "plastic body (Dell consumer class)", "mainstream"),
     # ASUS
-    (r"zenbook", 9.0, "all-aluminium (Zenbook class)", "premium"),
+    (r"zenbook", 8.5, "all-aluminium (Zenbook class)", "premium"),
     (r"expertbook", 8.0, "aluminium / magnesium (ExpertBook class)", "business"),
     (r"proart", 8.5, "aluminium body (ProArt class)", "premium"),
     (r"vivobook s ?1[456]", 7.0, "aluminium lid, plastic base, MIL-STD (Vivobook S class)", "mainstream"),
@@ -119,7 +119,7 @@ FAMILIES: list[tuple[str, float, str, str]] = [
     (r"asus", 5.8, "plastic body (ASUS consumer class)", "mainstream"),
     # Acer
     (r"swift air", 6.0, "metal but very thin — flexes (Swift Air class)", "mainstream"),
-    (r"swift (14 ai|go|x|7|3)|\bswift\b", 8.8, "aluminium body (Swift class)", "premium"),
+    (r"swift (14 ai|go|x|7|3)|\bswift\b", 8.5, "aluminium body (Swift class)", "premium"),
     (r"\ba31[56]\b", 5.5, "plastic body (Aspire class)", "budget"),
     (r"aspire", 5.5, "plastic body (Aspire class)", "budget"),
     (r"nitro", 6.0, "plastic body (Nitro class)", "gaming"),
@@ -132,7 +132,7 @@ FAMILIES: list[tuple[str, float, str, str]] = [
     (r"surface go", 7.0, "magnesium (Surface Go class)", "mainstream"),
     (r"surface", 8.5, "magnesium-aluminium (Surface)", "premium"),
     # Samsung
-    (r"galaxy book.*(pro|ultra|edge)", 8.8, "aluminium body (Galaxy Book Pro/Ultra class)", "premium"),
+    (r"galaxy book.*(pro|ultra|edge)", 8.5, "aluminium body (Galaxy Book Pro/Ultra class)", "premium"),
     (r"galaxy book", 8.0, "aluminium body (Galaxy Book class)", "mainstream"),
     # Huawei / Honor / Xiaomi
     (r"matebook x pro", 9.2, "unibody aluminium (MateBook X Pro)", "premium"),
