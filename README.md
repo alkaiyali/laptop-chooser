@@ -41,6 +41,11 @@ python3 app.py
 ./update.sh
 ./update.sh --force   # ignore freshness check
 
+# A store-level failure doesn't abort the refresh: the other stores still run,
+# normalize consumes what succeeded, and auto-deploy still ships the merged
+# snapshot. data/.partial-refresh makes the next cron pass retry the failed
+# stores instead of waiting a full TTL.
+
 # Ship it: one self-contained HTML file on a Cloudflare Worker
 python3 build_worker.py
 cd deploy && npx wrangler deploy
