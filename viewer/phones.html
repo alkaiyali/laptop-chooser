@@ -34,6 +34,10 @@
     --accent-glow: rgba(2,132,199,0.2);
   }
   * { box-sizing: border-box; }
+  /* Phones built its controls as spans; now that they are real <button>s, they
+     must take the page font rather than the UA's (the longhans in .chip and
+     .tag below still win on size). */
+  button, select, input, textarea { font: inherit; color: inherit; }
   body { background: var(--bg); color: var(--text);
     font-family: Inter, system-ui, sans-serif; margin: 0; padding: 0 16px 80px; }
   header { max-width: 1280px; margin: 0 auto; padding: 28px 4px 12px; }
@@ -51,7 +55,7 @@
     overflow-y: auto; overflow-x: hidden;
   }
   @media (max-width: 940px) {
-    .layout { grid-template-columns: 1fr; }
+    .layout { grid-template-columns: minmax(0, 1fr); }
     aside.filters { position: static; max-height: none; }
     aside.filters:not(.open) { display: none; }
     .only-mobile { display: inline-flex; }
@@ -61,11 +65,11 @@
     margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line);
   }
   .filters-head h3 {
-    margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--text-bright);
   }
   .filters-head button {
-    background: none; border: none; color: var(--accent); font-size: 11.5px;
+    background: none; border: none; color: var(--accent); font-size: 12px;
     cursor: pointer; padding: 3px 6px; font-weight: 600; border-radius: 4px;
   }
   .filters-head button:hover { background: var(--accent-glow); }
@@ -73,14 +77,17 @@
   .fgroup:last-of-type { border-bottom: none; margin-bottom: 4px; padding-bottom: 0; }
   .flabel {
     display: flex; justify-content: space-between; align-items: center;
-    font-size: 11px; color: var(--muted); margin-bottom: 8px;
+    font-size: 12px; color: var(--muted); margin-bottom: 8px;
     font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
   }
   .flabel b { color: var(--text-bright); }
+  /* No outline suppression: phones.html had no :focus-visible rule at all, so
+     keyboard users fell back to the UA default only on inputs. */
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
   aside.filters input[type=search], aside.filters input[type=number], aside.filters select,
   .toolbar select {
     width: 100%; background: var(--bg2); border: 1px solid var(--line);
-    border-radius: var(--radius-sm); padding: 8px 11px; outline: none;
+    border-radius: var(--radius-sm); padding: 8px 11px;
     font-size: 13px; color: var(--text);
   }
   aside.filters input[type=search]:focus, aside.filters input[type=number]:focus,
@@ -89,6 +96,12 @@
   }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  /* Chip/tag controls are <button>s; strip the UA button skin here, before the
+     longhand font/colour rules below. Font inheritance is the global rule. */
+  button.chip, .active-filters button.tag {
+    appearance: none; -webkit-appearance: none; margin: 0;
+    text-align: start; line-height: inherit;
+  }
   .chip {
     cursor: pointer; user-select: none; border: 1px solid var(--line);
     background: var(--bg2); border-radius: 7px; padding: 5px 10px;
@@ -100,7 +113,7 @@
     background: rgba(56,189,248,0.14); border-color: var(--accent);
     color: var(--text-bright); font-weight: 600; box-shadow: 0 0 0 1px var(--accent);
   }
-  .chip .n { opacity: 0.65; font-size: 11px; margin-left: 5px; }
+  .chip .n { opacity: 0.65; font-size: 12px; margin-left: 5px; }
   .chk {
     display: flex; align-items: center; gap: 9px; font-size: 12.5px;
     color: var(--muted); cursor: pointer; margin: 8px 0; user-select: none;
@@ -123,14 +136,14 @@
   .active-filters { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
   .active-filters:empty { margin-bottom: 0; }
   .active-filters .tag {
-    font-size: 11px; background: rgba(129,140,248,0.12); border: 1px solid rgba(129,140,248,0.35);
+    font-size: 12px; background: rgba(129,140,248,0.12); border: 1px solid rgba(129,140,248,0.35);
     color: var(--text); border-radius: 6px; padding: 4px 9px;
     cursor: pointer; transition: all 0.15s ease;
   }
   .active-filters .tag:hover { border-color: var(--accent); filter: brightness(1.15); }
 
   .grid { margin: 0; display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 14px; }
   .card { background: var(--card); border: 1px solid var(--line);
     border-radius: var(--radius); padding: 14px 15px; }
   .prow { display: flex; gap: 12px; align-items: flex-start; }
@@ -146,7 +159,7 @@
   .scores b { color: var(--text); }
   .specs { font-size: 13px; line-height: 1.65; }
   .tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
-  .tag { font-size: 11px; border: 1px solid var(--line); border-radius: 20px;
+  .tag { font-size: 12px; border: 1px solid var(--line); border-radius: 20px;
     padding: 2px 9px; color: var(--muted); }
   .offers { margin-top: 8px; font-size: 12px; color: var(--muted); }
   .card a.buy { display: inline-block; margin-top: 10px; color: var(--accent);
@@ -234,7 +247,8 @@
   };
 
   function chip(label, count, active, onclick) {
-    var el = document.createElement('span');
+    var el = document.createElement('button');
+    el.type = 'button';
     el.className = 'chip' + (active ? ' on' : '');
     el.textContent = label;
     if (count != null) {
@@ -243,6 +257,7 @@
       n.textContent = count;
       el.append(' ', n);
     }
+    el.setAttribute('aria-pressed', active ? 'true' : 'false');
     el.onclick = onclick;
     return el;
   }
@@ -296,8 +311,10 @@
     PRICE_PRESETS.forEach(function (pr) {
       var a = pr[0], b = pr[1];
       var label = a && b ? (a / 1000) + '–' + (b / 1000) + 'k' : a ? (a / 1000) + 'k+' : '≤' + (b / 1000) + 'k';
-      var el = document.createElement('span');
+      var el = document.createElement('button');
+      el.type = 'button';
       el.className = 'chip'; el.textContent = label;
+      el.setAttribute('aria-pressed', 'false');
       el.onclick = function () { state.priceMin = a; state.priceMax = b; render(); };
       document.getElementById('f-ppresets').append(el);
     });
@@ -434,15 +451,21 @@
     });
     var bc = document.getElementById('f-brandcount');
     if (bc) bc.textContent = state.brand.size ? state.brand.size + ' selected' : '';
+    // chips are <button>s: keep the announced pressed state with the class
+    document.querySelectorAll('.chip').forEach(function (el) {
+      el.setAttribute('aria-pressed', el.classList.contains('on') ? 'true' : 'false');
+    });
   }
 
   function renderActiveFilters() {
     var box = document.getElementById('activeFilters');
     box.innerHTML = '';
     function tag(label, clear) {
-      var s = document.createElement('span');
+      var s = document.createElement('button');
+      s.type = 'button';
       s.className = 'tag'; s.textContent = label + ' ×';
       s.title = 'Clear filter';
+      s.setAttribute('aria-label', 'Remove filter ' + label);
       s.onclick = clear;
       box.append(s);
     }

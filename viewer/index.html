@@ -31,7 +31,7 @@
     --text: #f1f5f9;
     --text-bright: #ffffff;
     --muted: #94a3b8;
-    --muted-dark: #64748b;
+    --muted-dark: #8494ad;
     --accent: #38bdf8;
     --accent-glow: rgba(56, 189, 248, 0.25);
     --accent2: #818cf8;
@@ -59,7 +59,7 @@
     --track-line: #1e293b;
     --code-bg: #0d1527;
     --code-fg: #c7d2fe;
-    --noimg: #475569;
+    --noimg: #6b7b9c;
     --preset-grad: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
     --chip-on-grad: linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(129, 140, 248, 0.16));
     --card-hover: #38bdf8;
@@ -88,19 +88,19 @@
     --text: #0f172a;
     --text-bright: #020617;
     --muted: #64748b;
-    --muted-dark: #94a3b8;
+    --muted-dark: #5c6b86;
     --accent: #0284c7;
     --accent-glow: rgba(2, 132, 199, 0.2);
     --accent2: #4f46e5;
     --accent2-glow: rgba(79, 70, 229, 0.2);
-    --good: #059669;
+    --good: #0a7250;
     --good-bg: rgba(16, 185, 129, 0.1);
     --good-border: rgba(16, 185, 129, 0.25);
-    --warn: #d97706;
+    --warn: #96590f;
     --warn-bg: rgba(245, 158, 11, 0.1);
     --warn-border: rgba(245, 158, 11, 0.3);
     --warn-fg: #92400e;
-    --bad: #e11d48;
+    --bad: #c81f42;
     --bad-bg: rgba(225, 29, 72, 0.1);
     --bad-border: rgba(225, 29, 72, 0.25);
     --hairline: rgba(0, 0, 0, 0.07);
@@ -112,7 +112,7 @@
     --track-line: #cbd5e1;
     --code-bg: #f1f5f9;
     --code-fg: #4338ca;
-    --noimg: #94a3b8;
+    --noimg: #77859f;
     --preset-grad: linear-gradient(180deg, #ffffff, #f8fafc);
     --chip-on-grad: linear-gradient(135deg, rgba(2, 132, 199, 0.08), rgba(79, 70, 229, 0.08));
     --card-hover: #0284c7;
@@ -122,7 +122,7 @@
     --filter-tag-bg: rgba(79, 70, 229, 0.07);
     --filter-tag-border: rgba(79, 70, 229, 0.25);
     --filter-tag-fg: #4338ca;
-    --hot-fg: #059669;
+    --hot-fg: #0a7250;
     --hot-border: rgba(16, 185, 129, 0.3);
     --hot-bg: rgba(209, 250, 229, 0.6);
     --skel-bg: #e8edf4;
@@ -247,7 +247,7 @@
     display: inline-block;
   }
   .sub {
-    color: var(--muted); font-size: 11px; margin-top: 2px; font-family: var(--sans); letter-spacing: 0.01em;
+    color: var(--muted); font-size: 12px; margin-top: 2px; font-family: var(--sans); letter-spacing: 0.01em;
   }
   .header-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 
@@ -275,7 +275,7 @@
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
   }
   .view-tab .tab-badge, #badgeKneeAlerts {
-    margin-left: 2px; font-size: 11px; padding: 2px 7px;
+    margin-left: 2px; font-size: 12px; padding: 2px 7px;
     background: var(--accent) !important; color: #090d16 !important;
     border-radius: 10px; font-weight: 800; font-family: var(--sans);
     line-height: 1;
@@ -293,7 +293,7 @@
     transition: border-color 0.15s ease;
   }
   .pill:hover { border-color: var(--hairline); }
-  .pill .k { font-family: var(--sans); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; }
+  .pill .k { font-family: var(--sans); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; }
   .pill b { color: var(--text-bright); font-weight: 700; font-family: var(--sans); font-variant-numeric: tabular-nums; font-size: 12.5px; }
   /* Time-based median ⇄ mean rotator: JS toggles .fading on the pill, CSS fades the text out/in. */
   .pill.cyc .k, .pill.cyc b { transition: opacity 0.3s ease; }
@@ -321,7 +321,10 @@
     overflow-y: auto; overflow-x: hidden; box-shadow: var(--card-shadow);
   }
   @media (max-width: 1040px) {
-    .layout { grid-template-columns: 1fr; }
+    /* minmax(0,1fr), not 1fr: a bare `1fr` is minmax(auto,1fr), and the auto
+       minimum is the widest child's min-content — `.presets` (a nowrap flex row
+       of 10 cards) blew the track out to 1300px on an 820px viewport. */
+    .layout { grid-template-columns: minmax(0, 1fr); }
     aside.filters { position: static; max-height: none; box-shadow: none; }
     /* Phones start on the catalog, not on two screens of filters. */
     aside.filters:not(.open) { display: none; }
@@ -333,12 +336,12 @@
     margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line);
   }
   .filters-head h3 {
-    margin: 0; font-size: 11px; font-weight: 700; font-family: var(--sans);
+    margin: 0; font-size: 12px; font-weight: 700; font-family: var(--sans);
     letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-bright);
     display: flex; align-items: center; gap: 6px;
   }
   .filters-head button {
-    background: none; border: none; color: var(--accent); font-size: 11.5px;
+    background: none; border: none; color: var(--accent); font-size: 12px;
     cursor: pointer; padding: 3px 6px; font-weight: 600; font-family: var(--sans);
     letter-spacing: 0.04em; border-radius: 4px; transition: background 0.15s;
   }
@@ -348,14 +351,14 @@
   .fgroup:last-of-type { border-bottom: none; margin-bottom: 4px; padding-bottom: 0; }
   .flabel {
     display: flex; justify-content: space-between; align-items: center;
-    font-size: 11px; color: var(--muted); margin-bottom: 8px;
+    font-size: 12px; color: var(--muted); margin-bottom: 8px;
     font-weight: 700; font-family: var(--sans); letter-spacing: 0.1em; text-transform: uppercase;
   }
   .flabel b { color: var(--text-bright); font-weight: 700; letter-spacing: 0; }
 
   input[type=search], input[type=number], select {
     width: 100%; background: var(--bg2); border: 1px solid var(--line);
-    border-radius: var(--radius-sm); padding: 8px 11px; outline: none;
+    border-radius: var(--radius-sm); padding: 8px 11px;
     transition: all 0.15s ease; font-size: 13px; color: var(--text);
   }
   input[type=number] { font-family: var(--sans); font-variant-numeric: tabular-nums; }
@@ -365,6 +368,13 @@
 
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  /* Chip-like controls are <button>s (keyboard + aria-pressed). These rules must
+     precede .chip/.preset so their longhand font/color declarations still win;
+     font itself is inherited globally for button/select/input above. */
+  button.chip, button.preset, .active-filters button.tag {
+    appearance: none; -webkit-appearance: none; margin: 0;
+    text-align: start; line-height: inherit;
+  }
   .chip {
     cursor: pointer; user-select: none; border: 1px solid var(--line);
     background: var(--bg2); border-radius: 7px; padding: 5px 10px;
@@ -376,7 +386,7 @@
     background: var(--chip-on-grad); border-color: var(--accent);
     color: var(--text-bright); font-weight: 600; box-shadow: 0 0 0 1px var(--accent);
   }
-  .chip .n { opacity: 0.65; font-size: 11px; margin-left: 5px; }
+  .chip .n { opacity: 0.65; font-size: 12px; margin-left: 5px; }
   .chip img { height: 13px; width: auto; vertical-align: -2px; }
 
   .chk {
@@ -432,7 +442,7 @@
     background: var(--chip-on-grad); border: 1px solid var(--line); flex: 0 0 28px;
   }
   .preset b { font-weight: 650; font-size: 12.5px; letter-spacing: -0.01em; color: var(--text-bright); }
-  .preset small { color: var(--muted); font-weight: 400; font-size: 11px; font-family: var(--sans); }
+  .preset small { color: var(--muted); font-weight: 400; font-size: 12px; font-family: var(--sans); }
 
   /* ---------------- Toolbar ---------------- */
   .toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -442,7 +452,7 @@
   .toolbar select { width: auto; min-width: 200px; font-family: var(--sans); font-size: 12.5px; }
   .active-filters { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
   .active-filters .tag {
-    font-size: 11px; background: var(--filter-tag-bg); border: 1px solid var(--filter-tag-border);
+    font-size: 12px; background: var(--filter-tag-bg); border: 1px solid var(--filter-tag-border);
     color: var(--filter-tag-fg); border-radius: 6px; padding: 4px 9px;
     cursor: pointer; transition: all 0.15s ease; font-family: var(--sans);
   }
@@ -455,6 +465,10 @@
     box-shadow: var(--card-shadow);
   }
   .chart-panel.collapsed .chart-pane { display: none; }
+  /* Nothing to configure while the plot is hidden: dropping the axis controls
+     takes the collapsed head from four rows to one and reclaims ~110px on a
+     phone. Reappears with the pane on expand. */
+  .chart-panel.collapsed .chart-controls { display: none; }
   .chart-panel.is-empty .chart-pane { display: none; }
   .chart-head {
     display: flex; align-items: center; gap: 12px; padding: 10px 16px;
@@ -476,26 +490,26 @@
     box-shadow: inset 0 0 0 1px var(--hairline);
   }
   .chart-head .muted {
-    color: var(--muted); font-size: 11.5px; font-family: var(--sans);
+    color: var(--muted); font-size: 12px; font-family: var(--sans);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     min-width: 0; flex: 1 1 160px;
   }
-  .chart-controls { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .chart-controls { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-width: 0; }
   .chart-controls select {
-    width: auto; font-size: 11.5px; padding: 5px 9px; font-family: var(--sans);
+    width: auto; font-size: 12px; padding: 5px 9px; font-family: var(--sans);
     border-radius: 7px; background: var(--card);
   }
   .chart-toggle {
     background: var(--card); border: 1px solid var(--line); color: var(--muted);
-    border-radius: 7px; width: 28px; height: 28px; cursor: pointer;
-    font-size: 14px; line-height: 1; font-family: var(--sans); transition: all 0.15s ease;
+    border-radius: 7px; width: 32px; height: 32px; cursor: pointer;
+    font-size: 15px; line-height: 1; font-family: var(--sans); transition: all 0.15s ease;
   }
   .chart-toggle:hover { color: var(--text-bright); border-color: var(--accent); }
   .chart-body { position: relative; padding: 12px 14px 4px; }
   .chart-body svg { display: block; width: 100%; height: auto; }
   .chart-body svg .gl { stroke: var(--hairline); stroke-width: 1; }
-  .chart-body svg .ax { fill: var(--muted); font-family: var(--sans); font-size: 11px; }
-  .chart-body svg .axl { fill: var(--muted); font-family: var(--sans); font-size: 11px; letter-spacing: 0.08em; }
+  .chart-body svg .ax { fill: var(--muted); font-family: var(--sans); font-size: 12px; }
+  .chart-body svg .axl { fill: var(--muted); font-family: var(--sans); font-size: 12px; letter-spacing: 0.08em; }
   .chart-body svg circle.pt { opacity: 0.82; transition: all 0.12s ease; }
   .chart-body svg circle.pt:hover { opacity: 1; stroke: var(--text-bright); stroke-width: 1.6; r: 6.5px; cursor: pointer; }
   .chart-body svg circle.pt.front { stroke: var(--accent); stroke-width: 1.4; }
@@ -509,10 +523,10 @@
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   }
   .chart-tip .t { font-weight: 700; font-size: 12.5px; margin-bottom: 3px; color: var(--text-bright); }
-  .chart-tip .s { color: var(--muted); font-family: var(--sans); font-size: 11px; margin-top: 2px; }
+  .chart-tip .s { color: var(--muted); font-family: var(--sans); font-size: 12px; margin-top: 2px; }
   .chart-tip .p { font-family: var(--sans); font-weight: 700; margin-top: 4px; color: var(--accent); }
   .chart-legend { display: flex; gap: 16px; flex-wrap: wrap; padding: 10px 18px 12px; border-top: 1px solid var(--line); }
-  .chart-legend .li { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; color: var(--muted); font-family: var(--sans); }
+  .chart-legend .li { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); font-family: var(--sans); }
   .chart-body svg circle.pt.off { fill: var(--muted); opacity: 0.22; }
   .chart-body svg circle.pt.off:hover { opacity: 0.85; }
   .chart-body svg circle.pt.ghost { fill: var(--muted); opacity: 0.08; pointer-events: none; }
@@ -523,14 +537,16 @@
   .chart-legend img { height: 13px; width: auto; }
 
   /* ---------------- Laptop Cards Grid ---------------- */
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(336px, 1fr)); gap: 18px; }
+  /* min() caps the track at the container: without it a 348px floor overflows
+     any viewport narrower than the track (390px phones clipped 40px). */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(336px, 100%), 1fr)); gap: 18px; }
   .card.enter { animation: cardIn 0.34s cubic-bezier(0.16, 1, 0.3, 1) both; }
   .grid-more {
     grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center;
     gap: 9px; padding: 16px 0 8px;
   }
   .grid-more .hint {
-    color: var(--muted); font-size: 11px; font-family: var(--sans);
+    color: var(--muted); font-size: 12px; font-family: var(--sans);
     letter-spacing: 0.05em; text-transform: uppercase;
   }
   .load-more {
@@ -578,7 +594,7 @@
     display: flex; gap: 5px; flex-wrap: wrap; z-index: 2; pointer-events: none;
   }
   .badge {
-    font-size: 11px; font-weight: 750; border-radius: 6px; padding: 3.5px 7px;
+    font-size: 12px; font-weight: 750; border-radius: 6px; padding: 3.5px 7px;
     background: rgba(9, 13, 22, 0.82); border: 1px solid rgba(255, 255, 255, 0.12);
     color: #ffffff; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--sans);
@@ -647,8 +663,8 @@
   /* ---------------- Card Body ---------------- */
   .cbody { padding: 14px 15px 15px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
   .cbrand-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: -4px; }
-  .cbrand { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--sans); }
-  .cmodel-code { font-size: 11px; color: var(--muted); font-family: var(--code); }
+  .cbrand { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--sans); }
+  .cmodel-code { font-size: 12px; color: var(--muted); font-family: var(--code); }
   .cname {
     font-weight: 650; font-size: 14px; line-height: 1.4; letter-spacing: -0.01em;
     min-height: 2.8em; color: var(--text-bright); margin: 0;
@@ -662,7 +678,7 @@
   .price .cur { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: 0.06em; font-family: var(--sans); }
   .price .now { font-size: 24px; font-weight: 850; letter-spacing: -0.03em; font-family: var(--sans); font-variant-numeric: tabular-nums; color: var(--text-bright); }
   .price .was { font-size: 12.5px; color: var(--muted-dark); text-decoration: line-through; font-family: var(--sans); font-variant-numeric: tabular-nums; }
-  .hist-line { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); font-family: var(--sans); font-variant-numeric: tabular-nums; }
+  .hist-line { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); font-family: var(--sans); font-variant-numeric: tabular-nums; }
   .hist-line b { color: var(--text-bright); font-weight: 600; }
   .hist-line.at-low b { color: var(--good); }
 
@@ -676,14 +692,18 @@
   .spec .ic { display: flex; color: var(--accent); flex: 0 0 14px; opacity: 0.9; }
   .spec .ic svg { width: 14px; height: 14px; }
   .spec .v {
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    font-family: var(--sans); font-size: 11.5px; font-variant-numeric: tabular-nums; color: var(--text);
+    /* Two lines, not one clipped line: a nowrap+ellipsis at this track width
+       turned `USB-C Power Deliv…` into noise. Clamp instead so short values
+       still render on one line and long ones keep their meaning. */
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; text-overflow: ellipsis; white-space: normal;
+    font-family: var(--sans); font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text);
   }
   .spec.rate { grid-column: 1 / -1; }
   /* Rating rows must wrap, not clip: in RTL the shared nowrap+ellipsis rule
      hides the logical start of the line, which is exactly the "Build 6.4"
      head — leaving only the tail note visible and the rating unreadable. */
-  .spec.rate .v { white-space: normal; overflow: visible; text-overflow: clip; }
+  .spec.rate .v { white-space: normal; overflow: visible; text-overflow: clip; -webkit-line-clamp: none; display: block; }
   .spec .rs { font-weight: 700; font-variant-numeric: tabular-nums; font-family: var(--sans); }
   .spec .rs.hi { color: var(--good); }
   .spec .rs.mid { color: var(--warn); }
@@ -693,12 +713,12 @@
   /* Dealbreakers & Pros */
   .dealbreakers-row, .advantages-row { display: flex; flex-wrap: wrap; gap: 5px; }
   .badge-dealbreaker {
-    font-size: 11px; font-weight: 600; font-family: var(--sans);
+    font-size: 12px; font-weight: 600; font-family: var(--sans);
     color: var(--warn-fg); background: var(--warn-bg); border: 1px solid var(--warn-border);
     border-radius: 5px; padding: 2.5px 7px; display: inline-flex; align-items: center; gap: 4px; line-height: 1.3;
   }
   .badge-pro {
-    font-size: 11px; font-weight: 600; font-family: var(--sans);
+    font-size: 12px; font-weight: 600; font-family: var(--sans);
     color: var(--good); background: var(--good-bg); border: 1px solid var(--good-border);
     border-radius: 5px; padding: 2.5px 7px; display: inline-flex; align-items: center; gap: 4px; line-height: 1.3;
   }
@@ -706,7 +726,7 @@
   /* Tags */
   .tags { display: flex; gap: 5px; flex-wrap: wrap; }
   .tag {
-    font-size: 11px; padding: 3px 8px; border-radius: 5px; background: var(--card2);
+    font-size: 12px; padding: 3px 8px; border-radius: 5px; background: var(--card2);
     border: 1px solid var(--line); color: var(--muted); font-family: var(--sans); letter-spacing: 0.01em;
   }
   .tag.hot { color: var(--hot-fg); border-color: var(--hot-border); background: var(--hot-bg); font-weight: 600; }
@@ -720,7 +740,7 @@
     border-radius: var(--radius-sm); padding: 9px 11px; background: var(--card2);
   }
   .offers .hint {
-    font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.08em;
+    font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.08em;
     text-transform: uppercase; font-family: var(--sans); margin-bottom: 2px;
   }
   .offerwrap { display: flex; flex-direction: column; gap: 3px; }
@@ -729,21 +749,21 @@
   .offer .num { font-weight: 700; white-space: nowrap; font-family: var(--sans); }
   .offer.best .num { color: var(--good); }
   .offer .win {
-    color: var(--good); font-size: 11px; font-weight: 750; font-family: var(--sans);
+    color: var(--good); font-size: 12px; font-weight: 750; font-family: var(--sans);
     letter-spacing: 0.04em; white-space: nowrap; background: var(--good-bg);
     border: 1px solid var(--good-border); padding: 1.5px 6px; border-radius: 4px; text-transform: uppercase;
   }
-  .offer .gap { color: var(--muted); font-size: 11px; white-space: nowrap; font-family: var(--sans); }
+  .offer .gap { color: var(--muted); font-size: 12px; white-space: nowrap; font-family: var(--sans); }
   .offer .gap.oos { color: var(--bad); }
   .offer .var-badge {
-    margin-left: auto; font-size: 11px; font-family: var(--sans); color: var(--muted);
+    margin-left: auto; font-size: 12px; font-family: var(--sans); color: var(--muted);
     background: var(--card); border: 1px solid var(--line); border-radius: 4px;
     padding: 2px 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
     white-space: nowrap; user-select: none; transition: all 0.15s ease;
   }
   .offer .var-badge:hover { border-color: var(--accent); color: var(--text-bright); }
   .offerwrap.open .var-badge { background: var(--preset-grad); border-color: var(--accent); color: var(--accent); }
-  .offer .caret { font-size: 11px; display: inline-block; transition: transform 0.15s; }
+  .offer .caret { font-size: 12px; display: inline-block; transition: transform 0.15s; }
   .offer .store-link {
     color: var(--muted); text-decoration: none; font-size: 12px; padding: 2px 6px; border-radius: 4px;
     border: 1px solid transparent; transition: all 0.15s; display: inline-flex; align-items: center;
@@ -751,12 +771,12 @@
   .offer .store-link:hover { color: var(--accent); border-color: var(--line); background: var(--bg2); }
   .offer:has(.var-badge) .store-link { margin-left: 0; }
   .offer:not(:has(.var-badge)) .store-link { margin-left: auto; }
-  .offer-sub { font-size: 11px; color: var(--muted); display: flex; align-items: center; flex-wrap: wrap; gap: 3px 6px; line-height: 1.35; margin-top: 1px; }
+  .offer-sub { font-size: 12px; color: var(--muted); display: flex; align-items: center; flex-wrap: wrap; gap: 3px 6px; line-height: 1.35; margin-top: 1px; }
   .offer-sub .sold { font-weight: 600; color: var(--text); }
   .offer-sub .sep { opacity: 0.4; user-select: none; }
   .warnchip {
     color: var(--warn-fg); background: var(--warn-bg); border: 1px solid var(--warn-border);
-    font-size: 11px; font-weight: 700; border-radius: 4px; padding: 1.5px 5px; white-space: nowrap;
+    font-size: 12px; font-weight: 700; border-radius: 4px; padding: 1.5px 5px; white-space: nowrap;
     flex-shrink: 0; letter-spacing: 0.02em;
   }
   .osub {
@@ -765,21 +785,22 @@
   }
   .osub[hidden] { display: none !important; }
   .sub-row {
-    display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: var(--sans);
+    display: flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--sans);
     text-decoration: none; color: var(--text); padding: 4px 7px; border-radius: 4px; transition: background 0.12s;
   }
   .sub-row:hover { background: var(--card2); color: var(--accent); }
   .sub-row.oos { opacity: 0.55; }
   .sub-row .sub-price { margin-left: auto; font-weight: 700; color: var(--accent2); }
   .sub-row:hover .sub-price { color: var(--accent); }
-  .sub-row .sub-ext { color: var(--muted); font-size: 11px; }
+  .sub-row .sub-ext { color: var(--muted); font-size: 12px; }
   .slogo { height: 13px; width: auto; vertical-align: -2px; margin-right: 4px; }
 
   /* Performance & Value Gauges */
-  .bars { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
-  @media (max-width: 500px) { .bars { grid-template-columns: 1fr 1fr; } }
+  .bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); gap: 10px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
+  /* Track width, not viewport: the card is ~343px even at an 820px viewport, so
+     a viewport media query here never fired and the score row clipped. */
   .bar .t {
-    display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; color: var(--muted);
+    display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--muted);
     margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.07em; font-family: var(--sans);
   }
   .bar .t b { color: var(--text-bright); font-size: 12px; font-family: var(--sans); letter-spacing: 0; }
@@ -804,7 +825,7 @@
   .sl-panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow-x: auto; margin-bottom: 16px; box-shadow: var(--card-shadow); }
   .sl-head { display: flex; align-items: center; gap: 10px; padding: 13px 18px; border-bottom: 1px solid var(--line); background: var(--card2); }
   .sl-head h3 { margin: 0; font-size: 12px; font-family: var(--sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-bright); }
-  .sl-head .muted { color: var(--muted); font-size: 11.5px; font-family: var(--sans); }
+  .sl-head .muted { color: var(--muted); font-size: 12px; font-family: var(--sans); }
   .sl-row {
     display: grid; grid-template-columns: 26px 34px minmax(240px, 2.4fr) 82px 108px 118px 128px 76px 124px;
     gap: 10px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line);
@@ -813,12 +834,12 @@
   .sl-row:hover:not(.head) { background: var(--card2); }
   .sl-row .cmp { width: auto; height: auto; background: none; border: none; box-shadow: none; }
   .sl-row:last-child { border-bottom: none; }
-  .sl-row.head { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; background: var(--card2); font-family: var(--sans); }
+  .sl-row.head { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; background: var(--card2); font-family: var(--sans); }
   .sl-row .name { font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12.5px; }
   .sl-row .name small { font-weight: 400; color: var(--muted); display: block; }
   .sl-row .num { font-variant-numeric: tabular-nums; font-family: var(--sans); }
   .sl-row .low { color: var(--good); font-weight: 600; font-family: var(--sans); }
-  .sl-row .note { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sl-row .note { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .sl-row .rm { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; transition: color 0.15s; }
   .sl-row .rm:hover { color: var(--bad); }
   .sl-empty { padding: 36px 16px; color: var(--muted); text-align: center; }
@@ -860,7 +881,7 @@
   table.cmptable { width: 100%; border-collapse: collapse; font-size: 12.5px; }
   table.cmptable th, table.cmptable td { border-bottom: 1px solid var(--line); padding: 9px 13px; text-align: left; vertical-align: top; }
   table.cmptable tr:last-child th, table.cmptable tr:last-child td { border-bottom: none; }
-  table.cmptable th { color: var(--muted); font-weight: 600; font-size: 11px; width: 160px; font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.08em; }
+  table.cmptable th { color: var(--muted); font-weight: 600; font-size: 12px; width: 160px; font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.08em; }
   table.cmptable td { font-family: var(--sans); font-variant-numeric: tabular-nums; }
   table.cmptable td.best { color: var(--good); font-weight: 700; background: var(--good-bg); border-radius: 4px; }
   .cmphead { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 18px; }
@@ -889,18 +910,18 @@
   .update-banner.error { background: var(--hot-bg); border-color: var(--hot-border); color: var(--hot-fg); }
   .spin { width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; flex: 0 0 14px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  footer { color: var(--muted); font-size: 11.5px; margin-top: 36px; text-align: center; font-family: var(--sans); }
+  footer { color: var(--muted); font-size: 12px; margin-top: 36px; text-align: center; font-family: var(--sans); }
   .noimg { color: var(--noimg); font-size: 42px; }
 
   /* ---------------- Field Notes View ---------------- */
   .notes-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 28px; align-items: start; margin-top: 14px; }
-  @media (max-width: 960px) { .notes-layout { grid-template-columns: 1fr; } }
+  @media (max-width: 960px) { .notes-layout { grid-template-columns: minmax(0, 1fr); } }
   .notes-toc {
     position: sticky; top: 84px; background: var(--card); border: 1px solid var(--line);
     border-radius: var(--radius); padding: 18px; max-height: calc(100vh - 108px); overflow: auto; box-shadow: var(--card-shadow);
   }
   @media (max-width: 960px) { .notes-toc { position: static; max-height: none; } }
-  .notes-toc h4 { margin: 0 0 14px; font-size: 11px; font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-bright); }
+  .notes-toc h4 { margin: 0 0 14px; font-size: 12px; font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-bright); }
   .notes-toc ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
   .notes-toc a { color: var(--muted); text-decoration: none; font-size: 12.5px; padding: 6px 10px; border-radius: 6px; display: block; transition: all 0.15s ease; line-height: 1.4; }
   .notes-toc a:hover { color: var(--accent); background: var(--bg2); }
@@ -922,7 +943,7 @@
   .callout.tip { background: var(--good-bg); border-color: var(--good); color: var(--text); }
   .callout b { font-weight: 700; }
   .notes-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 18px 0 26px; font-size: 12.5px; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
-  .notes-table th { background: var(--card2); border-bottom: 1px solid var(--line); padding: 10px 14px; text-align: left; font-family: var(--sans); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+  .notes-table th { background: var(--card2); border-bottom: 1px solid var(--line); padding: 10px 14px; text-align: left; font-family: var(--sans); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
   .notes-table td { border-bottom: 1px solid var(--line); padding: 11px 14px; vertical-align: top; }
   .notes-table tr:last-child td { border-bottom: none; }
   .notes-table tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
@@ -949,7 +970,7 @@
     padding: 12px 16px; transition: all 0.16s ease;
   }
   .knees-stat-pill:hover { border-color: var(--accent); transform: translateY(-1px); }
-  .knees-stat-pill span { font-size: 11px; font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .knees-stat-pill span { font-size: 12px; font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
   .knees-stat-pill b { font-family: var(--sans); font-size: 22px; font-weight: 800; color: var(--text-bright); }
 
   .knees-controls-bar {
@@ -960,7 +981,7 @@
     justify-content: space-between; flex-wrap: wrap; box-shadow: var(--card-shadow);
   }
   .knees-control-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .knees-control-label { font-size: 11px; font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
+  .knees-control-label { font-size: 12px; font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
   .knees-pill-btn {
     background: var(--bg2); border: 1px solid var(--line); color: var(--muted);
     border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600;
@@ -987,7 +1008,7 @@
     font-family: var(--sans); text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-bright);
   }
   .knees-chart-sub { font-size: 12px; font-weight: 400; text-transform: none; color: var(--muted); letter-spacing: normal; }
-  .knees-chart-legend { display: flex; align-items: center; gap: 16px; font-size: 11.5px; font-family: var(--sans); color: var(--muted); flex-wrap: wrap; }
+  .knees-chart-legend { display: flex; align-items: center; gap: 16px; font-size: 12px; font-family: var(--sans); color: var(--muted); flex-wrap: wrap; }
   .knees-chart-legend .legend-item { display: flex; align-items: center; gap: 6px; }
   .legend-line { width: 20px; height: 3px; border-radius: 2px; display: inline-block; }
   .legend-line.active-scope { background: var(--accent); }
@@ -1014,7 +1035,7 @@
   .knees-section { margin-bottom: 38px; }
   .knees-section-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
   .knees-section-head h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; margin: 0; display: flex; align-items: center; gap: 8px; color: var(--text-bright); }
-  .knees-section-head .count-badge { font-size: 11.5px; font-family: var(--sans); padding: 3px 9px; border-radius: 12px; font-weight: 800; }
+  .knees-section-head .count-badge { font-size: 12px; font-family: var(--sans); padding: 3px 9px; border-radius: 12px; font-weight: 800; }
   .knees-section-desc { color: var(--muted); font-size: 12.5px; margin-left: auto; }
 
   .knees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
@@ -1036,7 +1057,7 @@
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.8em;
   }
   .knee-card-badge {
-    display: inline-flex; align-items: center; gap: 5px; font-size: 11px;
+    display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
     font-weight: 750; padding: 3.5px 8px; border-radius: 6px; white-space: nowrap; font-family: var(--sans);
   }
   .knee-card-badge.drop { background: var(--good-bg); color: var(--good); border: 1px solid var(--good-border); }
@@ -1053,7 +1074,7 @@
   .knee-card-delta.bad { color: var(--bad); }
   .knee-card-timeline {
     display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
-    font-size: 11px; font-family: var(--sans); color: var(--muted);
+    font-size: 12px; font-family: var(--sans); color: var(--muted);
     margin-top: -2px; margin-bottom: 2px;
   }
   .knee-card-timeline .pill {
@@ -1062,12 +1083,12 @@
   }
 
   .knee-card-specs {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: 11.5px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: 12px;
     color: var(--muted); background: var(--bg2); padding: 10px 12px;
     border-radius: var(--radius-sm); border: 1px solid var(--line);
   }
   .knee-card-spec-item b { color: var(--text-bright); font-weight: 600; }
-  .knee-card-scores { display: flex; gap: 8px; font-family: var(--sans); font-size: 11.5px; }
+  .knee-card-scores { display: flex; gap: 8px; font-family: var(--sans); font-size: 12px; }
   .knee-score-pill { background: var(--bg2); padding: 4px 9px; border-radius: 5px; border: 1px solid var(--line); }
   .knee-score-pill b { color: var(--text-bright); }
 
@@ -1095,7 +1116,7 @@
   .crumbs a { color: var(--accent); text-decoration: none; }
   .crumbs a:hover { text-decoration: underline; }
   .d-hero { display: grid; grid-template-columns: 300px 1fr; gap: 18px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--card-shadow); }
-  @media (max-width: 720px) { .d-hero { grid-template-columns: 1fr; } }
+  @media (max-width: 720px) { .d-hero { grid-template-columns: minmax(0, 1fr); } }
   .d-img { background: var(--card2); border: 1px solid var(--line); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; min-height: 220px; overflow: hidden; }
   .d-img img { max-width: 100%; max-height: 260px; object-fit: contain; }
   .d-title { font-size: 21px; font-weight: 800; color: var(--text-bright); margin: 6px 0 8px; line-height: 1.3; }
@@ -1110,7 +1131,7 @@
   .d-cta.best small, .d-cta.best .d-cta-sub { color: rgba(255,255,255,.85); }
   .d-cta img.slogo, .d-cta .slogo { height: 18px; }
   .d-cta-main { display: flex; flex-direction: column; line-height: 1.25; }
-  .d-cta-sub { font-size: 11.5px; color: var(--muted); }
+  .d-cta-sub { font-size: 12px; color: var(--muted); }
   .d-cta .go { margin-left: auto; font-weight: 800; }
   .d-cta.oos { opacity: 0.55; }
   .d-sec { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--card-shadow); }
@@ -1118,12 +1139,12 @@
   .d-specgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px 18px; font-size: 13px; }
   .d-specgrid .k { color: var(--muted); }
   .d-proscons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media (max-width: 720px) { .d-proscons { grid-template-columns: 1fr; } }
+  @media (max-width: 720px) { .d-proscons { grid-template-columns: minmax(0, 1fr); } }
   .d-proscons ul { margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.7; }
   .revlinks { display: flex; flex-wrap: wrap; gap: 8px; }
   .revlink { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card2); color: var(--text); text-decoration: none; font-size: 13px; font-weight: 600; }
   .revlink:hover { border-color: var(--accent); color: var(--text-bright); text-decoration: none; }
-  .revlang { font-size: 11px; font-weight: 800; font-family: var(--sans); background: var(--accent); color: #090d16; border-radius: 6px; padding: 2px 6px; }
+  .revlang { font-size: 12px; font-weight: 800; font-family: var(--sans); background: var(--accent); color: #090d16; border-radius: 6px; padding: 2px 6px; }
   .alt-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
   .alt-card { display: block; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card2); padding: 10px 12px; color: var(--text); text-decoration: none; }
   .alt-card:hover { border-color: var(--accent); color: var(--text-bright); text-decoration: none; }
@@ -1159,7 +1180,7 @@
     --text: #e8eefb;
     --text-bright: #ffffff;
     --muted: #94a3bd;
-    --muted-dark: #67758f;
+    --muted-dark: #8494ad;
     --accent: #4cc9ff;
     --accent-glow: rgba(76, 201, 255, 0.22);
     --accent2: #8b93ff;
@@ -1179,7 +1200,7 @@
     --track-line: #1b2946;
     --code-bg: #0b1322;
     --code-fg: #b9c6ff;
-    --noimg: #46536e;
+    --noimg: #6b7b9c;
     --preset-grad: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.005));
     --chip-on-grad: linear-gradient(135deg, rgba(76, 201, 255, 0.14), rgba(139, 147, 255, 0.14));
     --card-hover: var(--accent);
@@ -1206,14 +1227,14 @@
     --text: #101b30;
     --text-bright: #050c1b;
     --muted: #5c6b86;
-    --muted-dark: #8c99b1;
+    --muted-dark: #5c6b86;
     --accent: #0679c7;
     --accent-glow: rgba(6, 121, 199, 0.16);
     --accent2: #4a52e8;
     --accent2-glow: rgba(74, 82, 232, 0.16);
-    --good: #0f9d6e;
-    --warn: #b9701a;
-    --bad: #d92c4e;
+    --good: #0a7250;
+    --warn: #96590f;
+    --bad: #c81f42;
     --hairline: rgba(15, 23, 42, 0.06);
     --header-bg: rgba(246, 248, 252, 0.85);
     --tray-bg: rgba(255, 255, 255, 0.94);
@@ -1223,7 +1244,7 @@
     --track-line: #d4dce9;
     --code-bg: #eef2f8;
     --code-fg: #3f48c8;
-    --noimg: #9aa7bd;
+    --noimg: #77859f;
     --preset-grad: linear-gradient(180deg, #ffffff, #f7f9fd);
     --chip-on-grad: linear-gradient(135deg, rgba(6, 121, 199, 0.09), rgba(74, 82, 232, 0.09));
     --card-shadow: 0 1px 2px rgba(16, 27, 48, 0.05), 0 10px 26px -20px rgba(16, 27, 48, 0.35);
@@ -1232,7 +1253,7 @@
     --filter-tag-bg: rgba(74, 82, 232, 0.07);
     --filter-tag-border: rgba(74, 82, 232, 0.24);
     --filter-tag-fg: #3f48c8;
-    --hot-fg: #0d8a61;
+    --hot-fg: #0a7250;
     --hot-border: rgba(15, 157, 110, 0.3);
     --hot-bg: rgba(15, 157, 110, 0.1);
     --skel-bg: #e9eef6;
@@ -1278,7 +1299,7 @@
   .brand-block .sub { margin-top: 3px; padding-inline-start: 44px; }
   .logo span { background: none; -webkit-text-fill-color: currentColor; color: var(--accent); }
   .logo-dot { width: 9px; height: 9px; border-radius: 3px; transform: rotate(45deg); background: linear-gradient(135deg, var(--accent), var(--accent2)); }
-  .sub { font-size: 11px; letter-spacing: 0.02em; color: var(--muted); }
+  .sub { font-size: 12px; letter-spacing: 0.02em; color: var(--muted); }
   .header-right { gap: 8px; }
 
   .view-tabs { background: var(--card2); border-color: var(--line); border-radius: 14px; padding: 4px; gap: 3px; }
@@ -1295,7 +1316,7 @@
   .pill { background: transparent; border: none; padding: 6px 12px; gap: 7px; border-radius: 9px; }
   .pill + .pill { box-shadow: inset 1px 0 0 var(--line-subtle); }
   .pill:hover { background: var(--card3); border-color: transparent; }
-  .pill .k { font-size: 11px; letter-spacing: 0.09em; opacity: 0.68; }
+  .pill .k { font-size: 12px; letter-spacing: 0.09em; opacity: 0.68; }
   .pill b { font-size: 12.5px; }
   .theme-toggle, .lang-toggle { background: var(--card2); border: 1px solid var(--line); border-radius: 11px; height: 40px; min-width: 40px; }
   .theme-toggle:hover, .lang-toggle:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
@@ -1314,9 +1335,9 @@
   .cs-btn .cs-label { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .cs-btn .cs-caret { flex: 0 0 auto; width: 14px; height: 14px; color: var(--muted); transition: transform .18s ease; }
   .cs-btn:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
-  .cs-btn:focus-visible, .cselect.open .cs-btn { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .cs-btn:focus-visible, .cselect.open .cs-btn { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
   .cselect.open .cs-caret { transform: rotate(180deg); color: var(--accent); }
-  .cselect.sm .cs-btn { padding: 4px 8px; font: 500 11.5px var(--sans); border-radius: 7px; }
+  .cselect.sm .cs-btn { padding: 4px 8px; font: 500 12px var(--sans); border-radius: 7px; }
   .cs-menu {
     position: fixed; z-index: 1000; min-width: 160px; max-height: min(340px, 60vh); overflow: auto;
     padding: 5px; border-radius: 12px; border: 1px solid var(--line);
@@ -1335,12 +1356,12 @@
   .cs-opt.sel .cs-tick { visibility: visible; }
   .cs-opt.act { background: color-mix(in srgb, var(--accent) 13%, transparent); }
   .cs-opt[aria-disabled="true"] { opacity: .45; cursor: default; }
-  .cs-group { padding: 8px 10px 4px; font: 700 11px var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--muted-dark); }
+  .cs-group { padding: 8px 10px 4px; font: 700 12px var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--muted-dark); }
   .cselect.lang .cs-btn { height: 40px; border-radius: 11px; padding: 0 10px 0 11px; gap: 7px; font: 700 12px var(--sans); background: var(--card2); }
   .cselect.lang .cs-globe { width: 15px; height: 15px; color: var(--muted); flex: 0 0 auto; }
   .lang-toggle button {
     background: transparent; border: 1px solid transparent; color: var(--muted);
-    font: 700 11.5px/1 var(--sans); padding: 8px 11px; border-radius: 8px; cursor: pointer;
+    font: 700 12px/1 var(--sans); padding: 8px 11px; border-radius: 8px; cursor: pointer;
     letter-spacing: 0.03em; transition: all 0.15s ease; min-width: 34px;
   }
   .lang-toggle button:hover { color: var(--text-bright); border-color: var(--line); background: var(--card3); }
@@ -1351,13 +1372,19 @@
   .lang-toggle button.on:hover { color: #04121c; }
 
   /* ---------- Sidebar ---------- */
-  .layout { grid-template-columns: 336px minmax(0, 1fr); gap: 20px; }
+  /* Desktop-only: this rule sits AFTER the `max-width: 1040px` rule above, so
+     at equal specificity it wins at every width. Left unscoped it pins column 1
+     to 336px on phones/tablets, squeezing `main` into the ~6px remainder as
+     soon as `aside.filters` takes a column. */
+  @media (min-width: 1041px) {
+    .layout { grid-template-columns: 336px minmax(0, 1fr); gap: 20px; }
+  }
   aside.filters { background: var(--card); border-radius: var(--radius); padding: 18px; top: 86px; }
   .filters-head { padding-bottom: 14px; margin-bottom: 16px; }
-  .filters-head h3 { font-size: 11.5px; letter-spacing: 0.1em; }
-  .filters-head button { font-size: 11px; padding: 4px 8px; border-radius: 6px; }
+  .filters-head h3 { font-size: 12px; letter-spacing: 0.1em; }
+  .filters-head button { font-size: 12px; padding: 4px 8px; border-radius: 6px; }
   .fgroup { margin-bottom: 16px; padding-bottom: 16px; }
-  .flabel { font-size: 11px; letter-spacing: 0.12em; margin-bottom: 9px; color: var(--muted-dark); }
+  .flabel { font-size: 12px; letter-spacing: 0.12em; margin-bottom: 9px; color: var(--muted-dark); }
   input[type=search], input[type=number], select { background: var(--bg2); border-color: var(--line); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 13px; }
   .chip { border-radius: 9px; padding: 6px 11px; font-size: 12px; }
   .chip.on { box-shadow: 0 0 0 1px var(--accent) inset; background: var(--chip-on-grad); }
@@ -1385,19 +1412,20 @@
     background: var(--card); border: 2px solid var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,.18); cursor: grab;
   }
   input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px var(--accent-glow); }
-  .rticks { display: flex; justify-content: space-between; margin: 4px 0 0; font: 500 11px var(--sans); color: var(--muted-dark); }
+  .rticks { display: flex; justify-content: space-between; margin: 4px 0 0; font: 500 12px var(--sans); color: var(--muted-dark); }
   .rticks span { width: 18px; text-align: center; }
   .rticks span.on { color: var(--accent); font-weight: 700; }
-  .flabel .pval { display: inline-flex; align-items: center; gap: 2px; font: 600 11.5px var(--sans); color: var(--muted); letter-spacing: 0; }
+  .flabel .pval { display: inline-flex; align-items: center; gap: 2px; font: 600 12px var(--sans); color: var(--muted); letter-spacing: 0; }
   .pval input {
-    width: 6.2ch; padding: 1px 3px; border: 1px solid transparent; border-radius: 5px; background: none; outline: none;
-    font: 600 11.5px var(--sans); color: var(--text-bright); text-align: center; cursor: text; font-variant-numeric: tabular-nums;
+    width: 6.2ch; padding: 1px 3px; border: 1px solid transparent; border-radius: 5px; background: none;
+    font: 600 12px var(--sans); color: var(--text-bright); text-align: center; cursor: text; font-variant-numeric: tabular-nums;
   }
+  .pval input:focus-visible { outline-offset: 1px; }
   #f-pminv { text-align: end; } #f-pmaxv { text-align: start; }
   .pval input::placeholder { color: var(--text-bright); opacity: 1; }
   .pval input:hover { border-color: var(--line); border-style: dashed; }
   .pval input:focus { border-color: var(--accent); border-style: solid; background: var(--bg2); }
-  .flabel b.num { font: 600 11.5px var(--sans); color: var(--text-bright); letter-spacing: 0; text-transform: none; }
+  .flabel b.num { font: 600 12px var(--sans); color: var(--text-bright); letter-spacing: 0; text-transform: none; }
   .fgroup:has(+ details.fcollapse) { border-bottom: 1px solid var(--line-subtle); margin-bottom: 16px; padding-bottom: 16px; }
   details.fcollapse > summary { cursor: pointer; list-style: none; margin-bottom: 0; }
   details.fcollapse > summary::-webkit-details-marker { display: none; }
@@ -1417,21 +1445,21 @@
   .preset .pi { width: 30px; height: 30px; border-radius: 9px; flex-basis: 30px; color: var(--accent); background: var(--chip-on-grad); border-color: var(--hairline); }
   .preset .pi svg { width: 15px; height: 15px; }
   .preset b { font-size: 12.5px; font-weight: 650; }
-  .preset small { font-size: 11px; }
+  .preset small { font-size: 12px; }
 
   /* ---------- Charts ---------- */
   .chart-panel { border-radius: var(--radius); }
   .chart-head { padding: 12px 18px; background: var(--card); border-bottom-color: var(--line-subtle); gap: 14px; }
   .chart-tabs { background: var(--card2); border-radius: 12px; padding: 3px; }
-  .chart-tab { border-radius: 9px; font: 650 11.5px/1.2 var(--sans); letter-spacing: 0; color: var(--muted); padding: 7px 12px; }
+  .chart-tab { border-radius: 9px; font: 650 12px/1.2 var(--sans); letter-spacing: 0; color: var(--muted); padding: 7px 12px; }
   .chart-tab.active { background: var(--card3); box-shadow: inset 0 0 0 1px var(--hairline); }
-  .chart-head .muted { font: 400 11.5px/1.4 var(--sans); }
-  .chart-controls select { font: 500 11.5px var(--sans); border-radius: 9px; padding: 6px 10px; }
+  .chart-head .muted { font: 400 12px/1.4 var(--sans); }
+  .chart-controls select { font: 500 12px var(--sans); border-radius: 9px; padding: 6px 10px; }
   .chart-toggle { border-radius: 9px; width: 30px; height: 30px; }
   .chart-body { padding: 18px 18px 6px; }
   .chart-body svg .gl { stroke: var(--line-subtle); }
-  .chart-body svg .ax { font: 500 11px var(--sans); fill: var(--muted-dark); }
-  .chart-body svg .axl { font: 600 11px var(--sans); letter-spacing: 0.1em; fill: var(--muted-dark); }
+  .chart-body svg .ax { font: 500 12px var(--sans); fill: var(--muted-dark); }
+  .chart-body svg .axl { font: 600 12px var(--sans); letter-spacing: 0.1em; fill: var(--muted-dark); }
   .chart-body svg circle.pt { opacity: 0.75; }
   .chart-body svg circle.pt.front { stroke: var(--accent); stroke-width: 1.5; }
   .chart-body svg circle.pt.knee { stroke: #f4a63c; stroke-width: 2; }
@@ -1441,17 +1469,17 @@
   .chart-tip .t { font-size: 13px; }
   .chart-tip .p { color: var(--accent); font-size: 13px; }
   .chart-legend { padding: 12px 18px 14px; gap: 18px; border-top-color: var(--line-subtle); }
-  .chart-legend .li { font: 500 11.5px var(--sans); }
+  .chart-legend .li { font: 500 12px var(--sans); }
 
   /* ---------- Toolbar ---------- */
   .toolbar { gap: 10px; margin-bottom: 16px; }
   .toolbar .count { font-size: 13.5px; font-weight: 650; }
   .toolbar select#sort { min-width: 216px; font: 550 12.5px var(--sans); }
   .active-filters { gap: 6px; }
-  .active-filters .tag { border-radius: 8px; padding: 5px 10px; font: 500 11px var(--sans); }
+  .active-filters .tag { border-radius: 8px; padding: 5px 10px; font: 500 12px var(--sans); }
 
   /* ---------- Cards ---------- */
-  .grid { grid-template-columns: repeat(auto-fill, minmax(348px, 1fr)); gap: 20px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(min(348px, 100%), 1fr)); gap: 20px; }
   .card { border-radius: var(--radius); }
   .card:hover { transform: translateY(-5px); }
   .card .imgbox { padding: 46px 22px 12px; aspect-ratio: auto; height: 230px; }
@@ -1473,7 +1501,7 @@
   .grid .card.selected { background: color-mix(in srgb, var(--accent) 6%, transparent); box-shadow: inset -1px -1px 0 var(--line), inset 0 0 0 2px var(--accent); }
   @keyframes cardflash { 0% { background: color-mix(in srgb, var(--accent) 18%, transparent); } 100% { background: transparent; } }
   .badges { top: 12px; inset-inline-start: 12px; inset-inline-end: 86px; gap: 6px; }
-  .badge { border-radius: 999px; padding: 4px 9px; font: 650 11px/1.3 var(--sans); letter-spacing: 0.06em; box-shadow: none; }
+  .badge { border-radius: 999px; padding: 4px 9px; font: 650 12px/1.3 var(--sans); letter-spacing: 0.06em; box-shadow: none; }
   .badge svg { width: 11px; height: 11px; }
   .badge.store { border-radius: 999px; padding: 5px 10px; }
   .badge.both { background: rgba(76, 201, 255, 0.16); border-color: rgba(76, 201, 255, 0.4); color: #bfe8ff; }
@@ -1492,30 +1520,30 @@
   .cmp:hover { transform: translateY(-1px); }
   .cbody { padding: 16px 16px 17px; gap: 11px; }
   .cbrand-row { margin-bottom: -2px; }
-  .cbrand { font-size: 11px; letter-spacing: 0.1em; }
-  .cmodel-code { font-size: 11px; }
+  .cbrand { font-size: 12px; letter-spacing: 0.1em; }
+  .cmodel-code { font-size: 12px; }
   .cname { font-size: 14.5px; font-weight: 650; letter-spacing: -0.015em; min-height: 0; margin-bottom: -4px; }
   .cname .brand { font-weight: 500; }
   .price-row, .price { gap: 8px; }
-  .price .cur { font-size: 11px; letter-spacing: 0.1em; color: var(--muted-dark); }
+  .price .cur { font-size: 12px; letter-spacing: 0.1em; color: var(--muted-dark); }
   .price .now { font-size: 27px; font-weight: 830; letter-spacing: -0.045em; }
   .price .was { font-size: 12.5px; }
   .price .tag { border-radius: 6px; }
-  .price .local { color: var(--muted); font: 500 11.5px var(--sans); }
-  .hist-line { font-size: 11px; gap: 7px; }
+  .price .local { color: var(--muted); font: 500 12px var(--sans); }
+  .hist-line { font-size: 12px; gap: 7px; }
   .specs { grid-template-columns: 1fr 1fr; gap: 8px 14px; background: transparent; border: none; border-top: 1px solid var(--line-subtle); border-bottom: 1px solid var(--line-subtle); border-radius: 0; padding: 12px 2px; }
   .spec { gap: 8px; font-size: 12.5px; }
   .spec .ic { color: var(--muted-dark); flex-basis: 15px; }
   .spec .ic svg { width: 15px; height: 15px; }
-  .spec .v { font-size: 11.5px; color: var(--text); }
+  .spec .v { font-size: 12px; color: var(--text); }
   .spec .rs.hi { color: var(--good); }
-  .offer-sub, .osub { font-size: 11px; }
+  .offer-sub, .osub { font-size: 12px; }
   .offers { border: none; border-top: 1px solid var(--line-subtle); border-bottom: 1px solid var(--line-subtle); border-radius: 0; background: transparent; padding: 11px 2px; }
-  .offers .hint { font-size: 11px; }
-  .badge-dealbreaker, .badge-pro { border-radius: 999px; font: 600 11px var(--sans); padding: 3px 9px; gap: 5px; }
+  .offers .hint { font-size: 12px; }
+  .badge-dealbreaker, .badge-pro { border-radius: 999px; font: 600 12px var(--sans); padding: 3px 9px; gap: 5px; }
   .badge-dealbreaker svg, .badge-pro svg { width: 11px; height: 11px; }
   .tags { gap: 6px; }
-  .tag { border-radius: 999px; font: 500 11px var(--sans); padding: 3.5px 9px; }
+  .tag { border-radius: 999px; font: 500 12px var(--sans); padding: 3.5px 9px; }
   .tag svg { width: 11px; height: 11px; }
   .tags .tag { display: inline-flex; align-items: center; gap: 5px; }
   .tag.good { color: var(--good); border-color: var(--good-border); background: var(--good-bg); }
@@ -1524,7 +1552,7 @@
   .tag.ram.unsure { border-style: dashed; }
   .hist-line.flat { color: var(--muted-dark); }
   .bars { gap: 12px; padding-top: 13px; }
-  .bar .t { font-size: 11px; margin-bottom: 6px; }
+  .bar .t { font-size: 12px; margin-bottom: 6px; }
   .bar .t b { font-size: 12.5px; }
   .bar { min-width: 0; }
   .bar .t { gap: 6px; }
@@ -1555,17 +1583,17 @@
   .tray .mini .m { border-radius: 12px; }
   .modal .panel { border-radius: var(--radius); }
   .modal h2 { font: 750 16px var(--sans); letter-spacing: -0.01em; text-transform: none; }
-  table.cmptable th { font: 600 11px var(--sans); }
+  table.cmptable th { font: 600 12px var(--sans); }
   table.cmptable td { font: 500 12.5px var(--sans); }
   .cmphead .h { border-radius: var(--radius-sm); }
 
   /* ---------- Help / banners / footer ---------- */
   details.help { border-radius: var(--radius); }
   details.help summary { padding: 13px 20px; font-size: 13px; }
-  details.help summary::before { content: "?"; font-family: var(--sans); font-weight: 800; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 6px; background: var(--chip-on-grad); color: var(--accent); }
+  details.help summary::before { content: "?"; font-family: var(--sans); font-weight: 800; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 6px; background: var(--chip-on-grad); color: var(--accent); }
   details.help .content { font-size: 13px; line-height: 1.8; }
   .update-banner { border-radius: var(--radius-sm); font-family: var(--sans); font-size: 12.5px; }
-  footer { font-family: var(--sans); font-size: 11.5px; }
+  footer { font-family: var(--sans); font-size: 12px; }
 
   /* ---------- Detail ---------- */
   .d-hero { border-radius: var(--radius); }
@@ -1573,7 +1601,7 @@
   .d-price .now { font-size: 32px; letter-spacing: -0.03em; }
   .d-cta { border-radius: 12px; }
   .d-sec { border-radius: var(--radius); }
-  .d-sec h3 { font: 650 11px var(--sans); letter-spacing: 0.1em; }
+  .d-sec h3 { font: 650 12px var(--sans); letter-spacing: 0.1em; }
   .revlink { border-radius: 10px; }
   .alt-card { border-radius: 12px; }
 
@@ -1648,7 +1676,7 @@
   :root[data-theme="light"] .badge.both,
   :root[data-theme="light"] .badge.frontier { text-shadow: none; }
 
-    [dir="rtl"] .badge { font-family: var(--sans); font-size: 11px; font-weight: 700; }
+    [dir="rtl"] .badge { font-family: var(--sans); font-size: 12px; font-weight: 700; }
 
   /* leave room for both floating action buttons (checkbox + star), both themes */
   .badges { inset-inline-end: 96px; }
@@ -1667,15 +1695,15 @@
   .ph { position: relative; margin-top: 4px; }
   .ph-chart { display: block; width: 100%; height: auto; direction: ltr; }
   .ph-gl { stroke: var(--hairline); }
-  .ph-ax { fill: var(--muted-dark); font: 500 11px var(--sans); }
+  .ph-ax { fill: var(--muted-dark); font: 500 12px var(--sans); }
   .ph-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
   .ph-area { stroke: none; }
   .ph-dot { fill: var(--muted); }
   .ph-dot.ph-low { fill: var(--good); stroke: var(--card); stroke-width: 2; }
   .ph-tag { fill: var(--good-bg); stroke: var(--good-border); }
-  .ph-tag-t { fill: var(--good); font: 700 11px var(--sans); }
+  .ph-tag-t { fill: var(--good); font: 700 12px var(--sans); }
   .ph-tip { position: absolute; z-index: 5; background: var(--tray-bg); border: 1px solid var(--line);
-    border-radius: 8px; padding: 4px 9px; font: 600 11px var(--sans); color: var(--text-bright);
+    border-radius: 8px; padding: 4px 9px; font: 600 12px var(--sans); color: var(--text-bright);
     pointer-events: none; white-space: nowrap; box-shadow: var(--card-shadow); }
   .ph-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; font-size: 12.5px; color: var(--muted); }
   .ph-meta b { color: var(--text-bright); font-variant-numeric: tabular-nums; }
@@ -1687,15 +1715,15 @@
   .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 10px; }
   .why-tile { background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px;
     display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-  .why-tile .wl { font: 650 11px var(--sans); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted-dark); }
+  .why-tile .wl { font: 650 12px var(--sans); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted-dark); }
   .why-tile .wv { font-size: 21px; font-weight: 800; letter-spacing: -0.02em; color: var(--text-bright); font-variant-numeric: tabular-nums; }
-  .why-tile .wv small { font-size: 11px; font-weight: 600; color: var(--muted); margin-left: 2px; }
-  .why-tile .ws { font-size: 11.5px; line-height: 1.45; color: var(--muted);
+  .why-tile .wv small { font-size: 12px; font-weight: 600; color: var(--muted); margin-left: 2px; }
+  .why-tile .ws { font-size: 12px; line-height: 1.45; color: var(--muted);
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .wtrack { height: 4px; border-radius: 999px; background: var(--track-bg); overflow: hidden; margin-top: 2px; }
   .wfill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
   .why-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; align-items: start; }
-  @media (max-width: 720px) { .why-cols { grid-template-columns: 1fr; } }
+  @media (max-width: 720px) { .why-cols { grid-template-columns: minmax(0, 1fr); } }
   .why-col { background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; }
   .why-col > b { font-size: 12px; display: block; margin-bottom: 7px; }
   .why-col.pros > b { color: var(--good); }
@@ -1705,7 +1733,7 @@
   .why-col li.muted { color: var(--muted-dark); list-style: none; margin-inline-start: -16px; }
   .why-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 12px; }
   .why-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--card2); border: 1px solid var(--line);
-    border-radius: 999px; padding: 5px 11px; font-size: 11.5px; color: var(--muted); }
+    border-radius: 999px; padding: 5px 11px; font-size: 12px; color: var(--muted); }
   .why-chip b { color: var(--text-bright); }
 
   @media (max-width: 520px) {
@@ -1729,7 +1757,7 @@
   h1, h2, h3, .logo, .cname, .price .now, .d-price .now, .knee-card-price { text-wrap: balance; }
   p, .empty p { text-wrap: pretty; }
   /* score-bar labels: sentence case so "Performance"/"Workstation" fit narrow cards */
-  .bar .t { text-transform: none; letter-spacing: 0; font-size: 11.5px; font-weight: 500; }
+  .bar .t { text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 500; }
 
   /* ---------- Frontier lift chart ---------- */
   .chart-body svg .gl.zero { stroke: var(--muted); stroke-opacity: 0.5; }
@@ -1742,11 +1770,44 @@
   .chart-body svg circle.pt.lift-pt { fill: var(--accent); stroke: var(--card); stroke-width: 2; opacity: 1; }
   .chart-body svg circle.pt.lift-pt.neg { fill: var(--muted); }
   .chart-body svg circle.pt.lift-pt:hover { stroke: var(--text-bright); stroke-width: 2; }
-  .chart-body svg .lift-lbl { fill: var(--text-bright); font: 650 11.5px var(--sans); font-variant-numeric: tabular-nums; }
-  .chart-body svg .lift-note { fill: var(--muted); font: 500 11px var(--sans); }
+  .chart-body svg .lift-lbl { fill: var(--text-bright); font: 650 12px var(--sans); font-variant-numeric: tabular-nums; }
+  .chart-body svg .lift-note { fill: var(--muted); font: 500 12px var(--sans); }
   .lift-sw-med { display: inline-block; width: 14px; height: 2px; border-radius: 1px; background: var(--muted); opacity: 0.75; }
   .lift-sw-band { display: inline-block; width: 14px; height: 9px; border-radius: 2px; background: var(--muted); opacity: 0.22; }
   .chart-tip .lift-tip { margin-top: 4px; font-weight: 650; font-variant-numeric: tabular-nums; color: var(--text-bright); }
+
+  /* ---------------- Narrow-viewport corrections ---------------- */
+  /* Light theme puts near-black on `--accent` (#0679c7): 4.12:1, under the
+     4.5:1 these 11px bold labels need. White clears it at 4.60:1. Dark theme
+     keeps near-black — #4cc9ff is bright enough that white would invert it. */
+  :root[data-theme="light"] .view-tab .tab-badge,
+  :root[data-theme="light"] #badgeKneeAlerts { color: #ffffff !important; }
+  :root[data-theme="light"] .lang-toggle button.on,
+  :root[data-theme="light"] .lang-toggle button.on:hover { color: #ffffff; }
+  /* The 4-tab segmented nav measures ~414px and was sliced by a 390px viewport
+     (it rendered as "Phon"). Wrap inside the control instead of clipping. */
+  @media (max-width: 560px) {
+    .view-tabs { flex-wrap: wrap; justify-content: center; border-radius: 18px; max-width: 100%; }
+    .view-tab { padding: 6px 11px; font-size: 12px; gap: 5px; }
+    .chart-tabs { flex-wrap: wrap; border-radius: 14px; }
+    .chart-head { padding: 10px 12px; gap: 8px; }
+    .chart-controls { margin-left: 0; width: 100%; }
+
+    /* Five wrapped toolbar rows (~212px) pushed every laptop below the fold.
+       Secondary actions become icon+count, and the spacer/sort move onto their
+       own row, so the toolbar lands on two. */
+    .toolbar { gap: 8px; margin-bottom: 10px; }
+    .toolbar .spacer { display: none; }
+    .toolbar .btn { padding: 7px 10px; font-size: 12px; }
+    .toolbar .btn .lbl { display: none; }
+    /* The sort control is a custom `.cselect` wrapper whose <button> will not
+       shrink below its intrinsic width (223px here), so it keeps its own row
+       rather than joining the icon buttons — forcing a flex-basis on it only
+       pushed the page 22px wider than the viewport. */
+    .toolbar .count { font-size: 13px; min-width: 0; }
+    .presets { padding: 4px 4px 6px; margin-bottom: 10px; }
+    .active-filters { margin-bottom: 10px; }
+  }
 </style>
 </head>
 <body>
@@ -1775,7 +1836,7 @@
           <div class="pill" id="freshness" title="" hidden><span class="k">updated</span><b id="freshness-text">–</b></div>
         </div>
         <button class="theme-toggle" id="themeToggle" type="button" title="Toggle light/dark mode" aria-label="Toggle theme">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
       </div>
     </div>
@@ -1875,7 +1936,7 @@
               <option value="ws">Y: Workstation benchmark</option>
             </select>
           </div>
-          <button class="chart-toggle" id="chartToggle" type="button" title="Collapse charts">–</button>
+          <button class="chart-toggle" id="chartToggle" type="button" title="Expand charts" aria-expanded="false" aria-controls="paneValue" aria-label="Show market charts">+</button>
         </div>
         <div class="chart-pane" id="paneValue">
           <div class="chart-body" id="chartBody">
@@ -1914,9 +1975,9 @@
         <button class="btn ghost only-mobile" id="btnFilters" type="button" aria-expanded="false" aria-controls="sidebar">⚙ Filters</button>
         <div class="count" id="count"><span style="color:var(--muted);font-weight:400">Loading catalog…</span></div>
         <div class="spacer"></div>
-        <button class="btn ghost" id="btnShortlist" type="button" title="Show shortlist with historical lows"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg> Shortlist <b id="slCount">0</b></button>
-        <button class="btn ghost" id="btnDeals" type="button" title="Value outliers: far better perf-per-riyal than comparable machines"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5 4.6 5 9a5 5 0 0 1-10 0c0-1.7.8-3.2 1.7-4.5C9.8 6 12 3 12 3z"/><path d="M12 19.2a2.7 2.7 0 0 0 2.7-2.7c0-1.8-2.7-4.5-2.7-4.5s-2.7 2.7-2.7 4.5A2.7 2.7 0 0 0 12 19.2z"/></svg> Deals <b id="dealCount">0</b></button>
-        <button class="btn ghost" id="btnKnees" type="button" title="Isolate the Pareto Knees: maximum efficiency inflection points before diminishing returns"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8z"/></svg> Pareto Knees <b id="kneeCount">0</b></button>
+        <button class="btn ghost" id="btnShortlist" type="button" title="Show shortlist with historical lows"><svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg> <span class="lbl">Shortlist</span> <b id="slCount">0</b></button>
+        <button class="btn ghost" id="btnDeals" type="button" title="Value outliers: far better perf-per-riyal than comparable machines"><svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5 4.6 5 9a5 5 0 0 1-10 0c0-1.7.8-3.2 1.7-4.5C9.8 6 12 3 12 3z"/><path d="M12 19.2a2.7 2.7 0 0 0 2.7-2.7c0-1.8-2.7-4.5-2.7-4.5s-2.7 2.7-2.7 4.5A2.7 2.7 0 0 0 12 19.2z"/></svg> <span class="lbl">Deals</span> <b id="dealCount">0</b></button>
+        <button class="btn ghost" id="btnKnees" type="button" title="Isolate the Pareto Knees: maximum efficiency inflection points before diminishing returns"><svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8z"/></svg> <span class="lbl">Pareto Knees</span> <b id="kneeCount">0</b></button>
         <select id="sort">
           <option value="value">Sort: Best value</option>
           <option value="game">Sort: Gaming value (FPS/💰)</option>
@@ -1972,7 +2033,7 @@
     <div class="knees-hero">
       <div class="knees-hero-head">
         <div>
-          <h1><span class="h-ic"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8z"/></svg></span> Knee Alerts &amp; Watchlist</h1>
+          <h1><span class="h-ic"><svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8z"/></svg></span> Knee Alerts &amp; Watchlist</h1>
           <p>Live tracking of Pareto frontier inflection points. Detects newly emerged sweet-spot configurations, price drops, machines that lost knee status (price hikes or stockouts), and near-knee watchlist candidates.</p>
         </div>
       </div>
@@ -2011,15 +2072,15 @@
         <div class="knees-chart-legend">
           <span class="legend-item"><span class="legend-line active-scope"></span> <span id="lblActiveScope">Active Scope Frontier</span></span>
           <span class="legend-item" id="itemGlobalGhost"><span class="legend-line global-ghost"></span> <span>Global Market (All Stores)</span></span>
-          <span class="legend-item"><span class="legend-knee-dot"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8z"/></svg></span> <span>Pareto Knee</span></span>
-          <select id="kneesChartMetric" class="select-sm" style="background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:11.5px;font-family:var(--sans);">
+          <span class="legend-item"><span class="legend-knee-dot"><svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8z"/></svg></span> <span>Pareto Knee</span></span>
+          <select id="kneesChartMetric" class="select-sm" style="background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:12px;font-family:var(--sans);">
             <option value="overall">Overall Score (Value Frontier)</option>
             <option value="perf">Performance Frontier</option>
           </select>
         </div>
       </div>
       <div class="knees-chart-body" id="kneesChartBody" style="position:relative">
-        <svg id="kneesChartSvg" style="width:100%;height:220px;display:block"></svg>
+        <svg aria-hidden="true" id="kneesChartSvg" style="width:100%;height:220px;display:block"></svg>
         <div id="kneesChartTip" class="chart-tip" hidden></div>
       </div>
     </div>
@@ -2035,14 +2096,14 @@
         <div class="knees-chart-legend">
           <span class="legend-item"><span class="legend-line active-scope"></span> <span>Current baseline</span></span>
           <span class="legend-item"><span class="legend-line hist-best"></span> <span>365-day historical best</span></span>
-          <select id="histBestMetric" class="select-sm" style="background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:11.5px;font-family:var(--sans);">
+          <select id="histBestMetric" class="select-sm" style="background:var(--bg2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:12px;font-family:var(--sans);">
             <option value="overall">Overall Score (Value Frontier)</option>
             <option value="perf">Performance Frontier</option>
           </select>
         </div>
       </div>
       <div class="knees-chart-body" id="histBestBody" style="position:relative">
-        <svg id="histBestSvg" style="width:100%;height:220px;display:block"></svg>
+        <svg aria-hidden="true" id="histBestSvg" style="width:100%;height:220px;display:block"></svg>
         <div id="histBestTip" class="chart-tip" hidden></div>
       </div>
     </div>
@@ -2070,7 +2131,7 @@
     <!-- Section 3: Active Pareto Knees -->
     <section class="knees-section" id="sectionKneesActive">
       <div class="knees-section-head">
-        <h2><span class="h-ic"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8z"/></svg></span> Active Pareto Knees</h2>
+        <h2><span class="h-ic"><svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8z"/></svg></span> Active Pareto Knees</h2>
         <span class="count-badge" id="countKneesActive" style="background:rgba(94,234,212,.2);color:var(--accent)">0</span>
         <span class="knees-section-desc">Current maximum-efficiency configurations before diminishing returns</span>
       </div>
@@ -2080,7 +2141,7 @@
     <!-- Section 4: Near-Knees (Watchlist) -->
     <section class="knees-section" id="sectionKneesNear">
       <div class="knees-section-head">
-        <h2><span class="h-ic"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6"/></svg></span> Near-Knee Watchlist</h2>
+        <h2><span class="h-ic"><svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6"/></svg></span> Near-Knee Watchlist</h2>
         <span class="count-badge" id="countKneesNear" style="background:rgba(251,191,36,.2);color:var(--warn)">0</span>
         <span class="knees-section-desc">High-potential models sitting right on the verge of the knee threshold</span>
       </div>
@@ -2901,36 +2962,36 @@
 <script>
 "use strict";
 const IC = {
-  laptop: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="11" rx="1.8"/><path d="M2 19.5h20"/></svg>',
-  bolt: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8z"/></svg>',
-  notes: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>',
-  star: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>',
-  flame: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5 4.6 5 9a5 5 0 0 1-10 0c0-1.7.8-3.2 1.7-4.5C9.8 6 12 3 12 3z"/><path d="M12 19.2a2.7 2.7 0 0 0 2.7-2.7c0-1.8-2.7-4.5-2.7-4.5s-2.7 2.7-2.7 4.5A2.7 2.7 0 0 0 12 19.2z"/></svg>',
-  target: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6"/></svg>',
-  link: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 14.5 14.5 9.5"/><path d="M10.5 7.5 12 6a4.2 4.2 0 0 1 6 6l-1.6 1.6"/><path d="M13.5 16.5 12 18a4.2 4.2 0 0 1-6-6l1.6-1.6"/></svg>',
-  palette: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.4-.5-.8-.5-1.3 0-.9.8-1.6 1.7-1.6H16a5 5 0 0 0 5-5c0-3.9-4-7.2-9-7.2z"/><circle cx="8.5" cy="10" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="15.5" cy="10" r="1"/><circle cx="8.5" cy="14.5" r="1"/></svg>',
-  warn: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 3 20h18L12 4z"/><path d="M12 10v4.5"/><circle cx="12" cy="17.4" r=".7"/></svg>',
-  check: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.5 2.5 2.5 4.6-5"/></svg>',
-  copy: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',
-  sliders: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h9M18.5 7.5H20M4 16.5h1.5M11 16.5h9"/><circle cx="15.8" cy="7.5" r="2"/><circle cx="8.2" cy="16.5" r="2"/></svg>',
-  trophy: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5.5a4 4 0 0 1-8 0V4z"/><path d="M8 5.5H5.2v1.8A3.2 3.2 0 0 0 8.4 10.5M16 5.5h2.8v1.8a3.2 3.2 0 0 1-3.2 3.2"/><path d="M12 13.5V17M9 20.5h6M10.5 20.5v-2h3v2"/></svg>',
-  gamepad: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="8" width="18.4" height="9" rx="4.4"/><path d="M8 11.5v3M6.5 13h3"/><circle cx="15.6" cy="12" r=".9"/><circle cx="17.9" cy="14.1" r=".9"/></svg>',
-  chip: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/><path d="M9.5 3.5v3M14.5 3.5v3M9.5 17.5v3M14.5 17.5v3M3.5 9.5h3M3.5 14.5h3M17.5 9.5h3M17.5 14.5h3"/></svg>',
-  feather: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 3.8C14 3.8 9 7.8 9 13.8V20"/><path d="M9 14h7.5"/><path d="M20.2 3.8c0 6-4 10-10.2 10"/></svg>',
-  briefcase: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7.5" width="18" height="12.5" rx="2"/><path d="M9 7.5V5.8A1.8 1.8 0 0 1 10.8 4h2.4A1.8 1.8 0 0 1 15 5.8v1.7"/></svg>',
-  layers: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.5 8.5 4.5L12 12.5 3.5 8 12 3.5z"/><path d="m3.5 13 8.5 4.5L20.5 13"/></svg>',
-  apple: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 8.6c-1.6 0-2.6 1-3.6 1s-2-1-3.6-1c-2 0-3.6 2-3.6 4.6 0 3 2 5.8 3.6 5.8 1 0 1.5-.7 3.6-.7s2.6.7 3.6.7c1.6 0 3.6-2.8 3.6-5.8 0-2.6-1.6-4.6-3.6-4.6z"/><path d="M12.4 8.4c0-1.9 1.4-3.4 3.1-3.4"/></svg>',
-  tag: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7.6L20 12.4 12.4 20 4 11.6V4z"/><circle cx="8.5" cy="8.5" r="1.3"/></svg>',
-  monitor: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="11.5" rx="2"/><path d="M9.5 20h5M12 16v4"/></svg>',
-  sparkle: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v3.4M12 17.1v3.4M3.5 12h3.4M17.1 12h3.4M6 6l2.4 2.4M15.6 15.6 18 18M18 6l-2.4 2.4M8.4 15.6 6 18"/></svg>',
-  lock: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></svg>',
-  ram: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="1.5"/><path d="M7 17v3M12 17v3M17 17v3M7 10v4M11 10v4M15 10v4"/></svg>',
-  weight: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="2.5"/><path d="M6.5 9.5h11l2.5 10.5H4z"/></svg>',
-  shield: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.9 7.5-9.5V6L12 3z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>',
-  keyboard: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>',
-  webcam: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="6.5"/><circle cx="12" cy="10" r="2.5"/><path d="M8 20.5h8M12 16.5v4"/></svg>',
-  flip: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="12" width="16" height="7" rx="1.5"/><path d="M5.5 12 8 4.5h10.5L16 12"/></svg>',
-  broom: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4.5 19.5 9.5"/><path d="m13 6 5 5L8.5 20.5H3.5v-5L13 6z"/></svg>',
+  laptop: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="11" rx="1.8"/><path d="M2 19.5h20"/></svg>',
+  bolt: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8z"/></svg>',
+  notes: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>',
+  star: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg>',
+  flame: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5 4.6 5 9a5 5 0 0 1-10 0c0-1.7.8-3.2 1.7-4.5C9.8 6 12 3 12 3z"/><path d="M12 19.2a2.7 2.7 0 0 0 2.7-2.7c0-1.8-2.7-4.5-2.7-4.5s-2.7 2.7-2.7 4.5A2.7 2.7 0 0 0 12 19.2z"/></svg>',
+  target: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6"/></svg>',
+  link: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 14.5 14.5 9.5"/><path d="M10.5 7.5 12 6a4.2 4.2 0 0 1 6 6l-1.6 1.6"/><path d="M13.5 16.5 12 18a4.2 4.2 0 0 1-6-6l1.6-1.6"/></svg>',
+  palette: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.4-.5-.8-.5-1.3 0-.9.8-1.6 1.7-1.6H16a5 5 0 0 0 5-5c0-3.9-4-7.2-9-7.2z"/><circle cx="8.5" cy="10" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="15.5" cy="10" r="1"/><circle cx="8.5" cy="14.5" r="1"/></svg>',
+  warn: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 3 20h18L12 4z"/><path d="M12 10v4.5"/><circle cx="12" cy="17.4" r=".7"/></svg>',
+  check: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.5 2.5 2.5 4.6-5"/></svg>',
+  copy: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',
+  sliders: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h9M18.5 7.5H20M4 16.5h1.5M11 16.5h9"/><circle cx="15.8" cy="7.5" r="2"/><circle cx="8.2" cy="16.5" r="2"/></svg>',
+  trophy: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5.5a4 4 0 0 1-8 0V4z"/><path d="M8 5.5H5.2v1.8A3.2 3.2 0 0 0 8.4 10.5M16 5.5h2.8v1.8a3.2 3.2 0 0 1-3.2 3.2"/><path d="M12 13.5V17M9 20.5h6M10.5 20.5v-2h3v2"/></svg>',
+  gamepad: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="8" width="18.4" height="9" rx="4.4"/><path d="M8 11.5v3M6.5 13h3"/><circle cx="15.6" cy="12" r=".9"/><circle cx="17.9" cy="14.1" r=".9"/></svg>',
+  chip: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/><path d="M9.5 3.5v3M14.5 3.5v3M9.5 17.5v3M14.5 17.5v3M3.5 9.5h3M3.5 14.5h3M17.5 9.5h3M17.5 14.5h3"/></svg>',
+  feather: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 3.8C14 3.8 9 7.8 9 13.8V20"/><path d="M9 14h7.5"/><path d="M20.2 3.8c0 6-4 10-10.2 10"/></svg>',
+  briefcase: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7.5" width="18" height="12.5" rx="2"/><path d="M9 7.5V5.8A1.8 1.8 0 0 1 10.8 4h2.4A1.8 1.8 0 0 1 15 5.8v1.7"/></svg>',
+  layers: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.5 8.5 4.5L12 12.5 3.5 8 12 3.5z"/><path d="m3.5 13 8.5 4.5L20.5 13"/></svg>',
+  apple: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15.6 8.6c-1.6 0-2.6 1-3.6 1s-2-1-3.6-1c-2 0-3.6 2-3.6 4.6 0 3 2 5.8 3.6 5.8 1 0 1.5-.7 3.6-.7s2.6.7 3.6.7c1.6 0 3.6-2.8 3.6-5.8 0-2.6-1.6-4.6-3.6-4.6z"/><path d="M12.4 8.4c0-1.9 1.4-3.4 3.1-3.4"/></svg>',
+  tag: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h7.6L20 12.4 12.4 20 4 11.6V4z"/><circle cx="8.5" cy="8.5" r="1.3"/></svg>',
+  monitor: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="11.5" rx="2"/><path d="M9.5 20h5M12 16v4"/></svg>',
+  sparkle: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v3.4M12 17.1v3.4M3.5 12h3.4M17.1 12h3.4M6 6l2.4 2.4M15.6 15.6 18 18M18 6l-2.4 2.4M8.4 15.6 6 18"/></svg>',
+  lock: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></svg>',
+  ram: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="1.5"/><path d="M7 17v3M12 17v3M17 17v3M7 10v4M11 10v4M15 10v4"/></svg>',
+  weight: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="2.5"/><path d="M6.5 9.5h11l2.5 10.5H4z"/></svg>',
+  shield: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.9 7.5-9.5V6L12 3z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>',
+  keyboard: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg>',
+  webcam: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="6.5"/><circle cx="12" cy="10" r="2.5"/><path d="M8 20.5h8M12 16.5v4"/></svg>',
+  flip: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="12" width="16" height="7" rx="1.5"/><path d="M5.5 12 8 4.5h10.5L16 12"/></svg>',
+  broom: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4.5 19.5 9.5"/><path d="m13 6 5 5L8.5 20.5H3.5v-5L13 6z"/></svg>',
 };
 const DATA_ALL = (window.LAPTOPS || []).filter(r => r.price);
 
@@ -3093,7 +3154,10 @@ function chip(label, count, active, onclick) {
   // `label` is untrusted (brand / tag / store names come from scraped DATA),
   // so render as text — never innerHTML. Use chipHtml() only for the
   // hardcoded store-logo markup below.
-  const el = document.createElement("span");
+  // A <button>, not a <span>: these chips ARE the filter surface, and as spans
+  // they were unreachable by Tab and invisible to screen readers.
+  const el = document.createElement("button");
+  el.type = "button";
   el.className = "chip" + (active ? " on" : "");
   el.textContent = label;
   if (count != null) {
@@ -3102,14 +3166,17 @@ function chip(label, count, active, onclick) {
     n.textContent = count;
     el.append(" ", n);
   }
+  el.setAttribute("aria-pressed", active ? "true" : "false");
   el.onclick = onclick;
   return el;
 }
 function chipHtml(html, count, active, onclick) {
   // Trusted-HTML variant: callers pass only hardcoded markup (store logos).
-  const el = document.createElement("span");
+  const el = document.createElement("button");
+  el.type = "button";
   el.className = "chip" + (active ? " on" : "");
   el.innerHTML = html + (count != null ? ` <span class="n">${Number(count)}</span>` : "");
+  el.setAttribute("aria-pressed", active ? "true" : "false");
   el.onclick = onclick;
   return el;
 }
@@ -3248,8 +3315,10 @@ function buildSidebar() {
   const presets = [[null,3000],[3000,4500],[4500,6500],[6500,null]];
   presets.forEach(([a,b]) => {
     const label = a && b ? `${a/1000}–${b/1000}k` : a ? `${a/1000}k+` : `≤${b/1000}k`;
-    const el = document.createElement("span");
+    const el = document.createElement("button");
+    el.type = "button";
     el.className = "chip"; el.textContent = label;
+    el.setAttribute("aria-pressed", "false");
     el.onclick = () => { state.priceMin = a; state.priceMax = b; render(); };
     $("#f-ppresets").append(el);
   });
@@ -3446,6 +3515,10 @@ function render() {
   if ($("#btnKnees")) $("#btnKnees").classList.toggle("active", state.pareto === "knees");
   const kneeSet = state.chartY === "perf" ? window.PARETO_KNEES_PERF : window.PARETO_KNEES_OVERALL;
   if ($("#kneeCount") && kneeSet) $("#kneeCount").textContent = kneeSet.size;
+  // chips are <button>s now: keep the announced pressed state in step with the
+  // `.on` class this block just finished computing.
+  document.querySelectorAll(".chip").forEach(el =>
+    el.setAttribute("aria-pressed", el.classList.contains("on") ? "true" : "false"));
 
   const source = state.showDupes ? DATA_ALL : DATA;
   const rows = source.filter(matches).sort((a, b) =>
@@ -3529,7 +3602,8 @@ function renderActiveFilters() {
   const add = (label, clear) => {
     // Labels carry user input (search box) and scraped values (store/brand/
     // tags): textContent, never innerHTML, so neither can inject markup.
-    const t = document.createElement("span"); t.className = "tag"; t.textContent = label + " ✕";
+    const t = document.createElement("button"); t.type = "button"; t.className = "tag"; t.textContent = label + " ✕";
+    t.setAttribute("aria-label", "Remove filter " + label);
     t.onclick = () => { clear(); render(); }; el.append(t);
   };
   if (state.q) add(`“${state.q}”`, () => { state.q=""; $("#f-q").value=""; });
@@ -3568,16 +3642,16 @@ function renderActiveFilters() {
 }
 
 const ICON = {
-  cpu: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>',
-  gpu: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h4"/></svg>',
-  ram: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="1.5"/><path d="M7 17v3M12 17v3M17 17v3M7 10v4M11 10v4M15 10v4"/></svg>',
-  disk: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 13h18"/><circle cx="7" cy="16" r="1"/><path d="M10 9h7"/></svg>',
-  screen: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 20h8M12 17v3"/></svg>',
-  display: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 20h8M12 17v3"/><circle cx="12" cy="10.5" r="2.3"/><path d="M12 6.4v1M12 13.6v1M7.9 10.5h1M15.1 10.5h1"/></svg>',
-  build: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 13 9 5 9-5"/><path d="m3 8 9 5 9-5"/></svg>',
-  os: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>',
-  battery: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 10.5v3"/><path d="M6 10.5v3M10 10.5v3"/></svg>',
-  power: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+  cpu: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>',
+  gpu: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h4"/></svg>',
+  ram: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="1.5"/><path d="M7 17v3M12 17v3M17 17v3M7 10v4M11 10v4M15 10v4"/></svg>',
+  disk: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 13h18"/><circle cx="7" cy="16" r="1"/><path d="M10 9h7"/></svg>',
+  screen: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 20h8M12 17v3"/></svg>',
+  display: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 20h8M12 17v3"/><circle cx="12" cy="10.5" r="2.3"/><path d="M12 6.4v1M12 13.6v1M7.9 10.5h1M15.1 10.5h1"/></svg>',
+  build: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 13 9 5 9-5"/><path d="m3 8 9 5 9-5"/></svg>',
+  os: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>',
+  battery: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 10.5v3"/><path d="M6 10.5v3M10 10.5v3"/></svg>',
+  power: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
 };
 
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
@@ -3921,7 +3995,7 @@ function card(r) {
   const el = document.createElement("div");
   el.className = "card";
   const img = r.image
-    ? `<img src="${escapeHtml(safeImgSrc(r.image))}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.display='none';var s=document.createElement('span');s.className='noimg';s.textContent='💻';this.parentNode.appendChild(s)">`
+    ? `<img src="${escapeHtml(safeImgSrc(r.image))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.style.display='none';var s=document.createElement('span');s.className='noimg';s.textContent='💻';this.parentNode.appendChild(s)">`
     : `<span class="noimg">💻</span>`;
   const cpu = r.cpu?.model && r.cpu.model !== r.cpu.family ? r.cpu.model : (r.cpu?.family || null);
   const gpuText = r.gpu?.model || (r.gpu?.class ? (r.gpu.class === "dedicated" ? "Dedicated GPU" : "Integrated") : null);
@@ -4283,7 +4357,7 @@ function openCompare() {
   const rows = [...selected].map(id => DATA.find(x => x.id === id)).filter(Boolean);
   if (rows.length < 2) return;
   $("#cmpHead").innerHTML = rows.map(r => `
-    <div class="h"><img src="${escapeHtml(safeImgSrc(r.image || ""))}" onerror="this.style.visibility='hidden'">
+    <div class="h"><img src="${escapeHtml(safeImgSrc(r.image || ""))}" alt="" onerror="this.style.visibility='hidden'">
       <div class="n" title="${escapeHtml(r.name||"")}">${escapeHtml(r.short_name || r.name || "")}</div>
       <div style="color:var(--muted);font-size:12px;margin-top:4px"><span class="badge store ${storeSlug(r.store)}">${storeLogo(r.store)}</span> · ${fmt(r.price)}${localPrice(r) ? ` <span style="opacity:.7">(${escapeHtml(localPrice(r))})</span>` : ""}</div></div>`).join("");
   const defs = [
@@ -4365,16 +4439,16 @@ function openCompare() {
 /* ---------------- quick chooser presets ---------------- */
 // Preset icons (Lucide, ISC licence)
 const PI = {
-  trophy: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>',
-  gamepad: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"/></svg>',
-  feather: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" x2="2" y1="8" y2="22"/><line x1="17.5" x2="9" y1="15" y2="15"/></svg>',
-  briefcase: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>',
-  cpu: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"/></svg>',
-  palette: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>',
-  apple: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>',
-  percent: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m15 9-6 6"/><path d="M9 9h.01"/><path d="M15 15h.01"/></svg>',
-  monitor: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>',
-  gem: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>',
+  trophy: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>',
+  gamepad: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z"/></svg>',
+  feather: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" x2="2" y1="8" y2="22"/><line x1="17.5" x2="9" y1="15" y2="15"/></svg>',
+  briefcase: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>',
+  cpu: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"/></svg>',
+  palette: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>',
+  apple: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>',
+  percent: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m15 9-6 6"/><path d="M9 9h.01"/><path d="M15 15h.01"/></svg>',
+  monitor: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>',
+  gem: '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>',
 };
 const PRESETS = [
   { icon: PI.trophy, title: "Best value", sub: "strong all-rounders",
@@ -4402,7 +4476,8 @@ const PRESETS = [
 function buildPresets() {
   const el = $("#presets");
   PRESETS.forEach(p => {
-    const b = document.createElement("div");
+    const b = document.createElement("button");
+    b.type = "button";
     b.className = "preset";
     b.innerHTML = `<span class="pi">${p.icon}</span><span><b>${p.title}</b><br><small>${p.sub}</small></span>`;
     b.onclick = () => { p.apply(); render(); document.querySelector("#sort").value = state.sort; window.scrollTo({top: 0, behavior: "smooth"}); };
@@ -4411,8 +4486,8 @@ function buildPresets() {
 }
 
 /* ---------------- theme ---------------- */
-const SUN_SVG = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-const MOON_SVG = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+const SUN_SVG = `<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+const MOON_SVG = `<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
 
 function setTheme(theme, save = true) {
   document.documentElement.dataset.theme = theme;
@@ -4633,9 +4708,12 @@ const pendingDraw = new Set(["value"]);   // one-time frontier reveal per tab en
 const TOUCH_UI = window.matchMedia && window.matchMedia("(hover: none)").matches;
 try {
   const savedChart = localStorage.getItem("lc-chart");
-  chartOpen = savedChart === null
-    ? !window.matchMedia("(max-width: 1040px)").matches   // phones open on the catalog, not the chart
-    : savedChart !== "0";
+  // Catalog first. With the chart open, the first laptop landed at y=888 inside
+  // an 813px viewport — the page opened on controls, not on a single price. The
+  // panel head (tabs, caption, +) stays put, so the chart reads as available
+  // rather than missing; the toggle or any chart tab re-opens it and the choice
+  // persists per user.
+  chartOpen = savedChart === null ? false : savedChart !== "0";
   const savedTab = localStorage.getItem("lc-chart-tab");
   if (["value", "ws", "ram", "lift"].includes(savedTab)) activeChart = savedTab;
 } catch (e) {}
@@ -4932,6 +5010,8 @@ function renderActiveChart(rows) {
   if (toggle) {
     toggle.textContent = chartOpen ? "–" : "+";
     toggle.title = chartOpen ? "Collapse charts" : "Expand charts";
+    toggle.setAttribute("aria-expanded", chartOpen ? "true" : "false");
+    toggle.setAttribute("aria-label", chartOpen ? "Hide market charts" : "Show market charts");
   }
   $("#chartSub").hidden = activeChart !== "value";
   $("#wsSub").hidden = activeChart !== "ws";
@@ -6289,15 +6369,15 @@ function renderKneesChart(data) {
 
     tip.innerHTML = `
       <div style="font-weight:700;font-size:12.5px;color:var(--text-bright);margin-bottom:3px">${escapeHtml(r.short_name || r.name)}</div>
-      <div style="color:var(--muted);font-size:11.5px;margin-bottom:4px"><span class="badge store ${storeSlug(r.store)}">${storeLogo(r.store)}</span> · <b>${fmt(r.price)}</b></div>
-      <div style="font-family:var(--sans);font-size:11px;color:var(--text);display:flex;gap:8px">
+      <div style="color:var(--muted);font-size:12px;margin-bottom:4px"><span class="badge store ${storeSlug(r.store)}">${storeLogo(r.store)}</span> · <b>${fmt(r.price)}</b></div>
+      <div style="font-family:var(--sans);font-size:12px;color:var(--text);display:flex;gap:8px">
         <span>Overall: <b>${r.overall_score ? r.overall_score.toFixed(1) : "–"}</b></span>
         <span>Perf: <b>${r.perf_score ? r.perf_score.toFixed(1) : "–"}</b></span>
       </div>
-      ${stack ? `<div style="margin-top:5px;font-size:11px;color:var(--text-bright);font-weight:700;font-family:var(--sans)">×${stack.length} share this spot:</div>`
-        + stack.slice(0, 5).map(m => `<div style="font-size:11px;color:var(--text);font-family:var(--sans)">• ${escapeHtml(m.short_name || m.name)} · ${escapeHtml(chartStore(m))} · ${fmt(m.price)}</div>`).join("") : ""}
-      ${isKnee ? `<div style="margin-top:5px;font-size:11px;color:#f59e0b;font-weight:700;font-family:var(--sans)">⚡ Pareto Knee Inflection Point</div>` : `<div style="margin-top:5px;font-size:11px;color:var(--accent);font-family:var(--sans)">🎯 Pareto Frontier Model</div>`}
-      <div style="margin-top:4px;font-size:11px;color:var(--muted);font-family:var(--sans)">click to view in catalog</div>
+      ${stack ? `<div style="margin-top:5px;font-size:12px;color:var(--text-bright);font-weight:700;font-family:var(--sans)">×${stack.length} share this spot:</div>`
+        + stack.slice(0, 5).map(m => `<div style="font-size:12px;color:var(--text);font-family:var(--sans)">• ${escapeHtml(m.short_name || m.name)} · ${escapeHtml(chartStore(m))} · ${fmt(m.price)}</div>`).join("") : ""}
+      ${isKnee ? `<div style="margin-top:5px;font-size:12px;color:#f59e0b;font-weight:700;font-family:var(--sans)">⚡ Pareto Knee Inflection Point</div>` : `<div style="margin-top:5px;font-size:12px;color:var(--accent);font-family:var(--sans)">🎯 Pareto Frontier Model</div>`}
+      <div style="margin-top:4px;font-size:12px;color:var(--muted);font-family:var(--sans)">click to view in catalog</div>
     `;
     tip.hidden = false;
 
@@ -6481,12 +6561,12 @@ function renderHistBestChart(data) {
     const gap = r.price - b.best.price;
     tip.innerHTML = `
       <div style="font-weight:700;font-size:12.5px;color:var(--text-bright);margin-bottom:3px">${escapeHtml(r.short_name || r.name)}</div>
-      <div style="color:var(--muted);font-size:11.5px;margin-bottom:4px"><span class="badge store ${storeSlug(r.store)}">${storeLogo(r.store)}</span> · now <b>${fmt(r.price)}</b></div>
-      <div style="font-family:var(--sans);font-size:11px;color:var(--text)">365d best: <b>${fmt(b.best.price)}</b>${b.best.date ? ` (${b.best.date})` : ""}</div>
+      <div style="color:var(--muted);font-size:12px;margin-bottom:4px"><span class="badge store ${storeSlug(r.store)}">${storeLogo(r.store)}</span> · now <b>${fmt(r.price)}</b></div>
+      <div style="font-family:var(--sans);font-size:12px;color:var(--text)">365d best: <b>${fmt(b.best.price)}</b>${b.best.date ? ` (${b.best.date})` : ""}</div>
       ${gap > 0.005
-        ? `<div style="margin-top:4px;font-size:11px;color:var(--bad);font-family:var(--sans)">▲ +${fmt(gap)} above best</div>`
-        : `<div style="margin-top:4px;font-size:11px;color:var(--good);font-family:var(--sans)">at 365-day best</div>`}
-      <div style="margin-top:4px;font-size:11px;color:var(--muted);font-family:var(--sans)">click to view in catalog</div>`;
+        ? `<div style="margin-top:4px;font-size:12px;color:var(--bad);font-family:var(--sans)">▲ +${fmt(gap)} above best</div>`
+        : `<div style="margin-top:4px;font-size:12px;color:var(--good);font-family:var(--sans)">at 365-day best</div>`}
+      <div style="margin-top:4px;font-size:12px;color:var(--muted);font-family:var(--sans)">click to view in catalog</div>`;
     tip.hidden = false;
     const bodyRect = bodyEl.getBoundingClientRect();
     let tx = ev.clientX - bodyRect.left + 14;
@@ -7487,9 +7567,9 @@ boot();
     }
   } catch (e) {}
 
-  var LOGO_SVG = '<svg width="1em" height="1em" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="12" rx="2"/><path d="M2 19.5h20"/></svg>';
-  var BOLT_SVG = '<svg width="1em" height="1em" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8z"/></svg>';
-  var NOTES_SVG = '<svg width="1em" height="1em" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h16v15H4z"/><path d="M8 9h8M8 13h5"/></svg>';
+  var LOGO_SVG = '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="12" rx="2"/><path d="M2 19.5h20"/></svg>';
+  var BOLT_SVG = '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8z"/></svg>';
+  var NOTES_SVG = '<svg aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h16v15H4z"/><path d="M8 9h8M8 13h5"/></svg>';
 
   var origText = [];
   var origAttr = [];
@@ -7633,9 +7713,9 @@ boot();
    truth (forms, onchange handlers, `.value = …` from app code all keep
    working); a button + popover list is layered on top and kept in sync. */
 (function () {
-  var CARET = '<svg class="cs-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
-  var TICK = '<svg class="cs-tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7.5"/></svg>';
-  var GLOBE = '<svg class="cs-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
+  var CARET = '<svg aria-hidden="true" class="cs-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+  var TICK = '<svg aria-hidden="true" class="cs-tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7.5"/></svg>';
+  var GLOBE = '<svg aria-hidden="true" class="cs-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
   var desc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value");
   var descIdx = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "selectedIndex");
   var openCs = null;

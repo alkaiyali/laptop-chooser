@@ -20,3 +20,6 @@ logs/
 
 # generated single-file chooser (rebuild with build_worker.py)
 deploy/
+
+# impeccable design-review snapshots (local tooling state, read from disk)
+.impeccable/
